@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils'
 export const LUOYIN_BRAND_NAME = '洛音云枢'
 export const LUOYIN_TAGLINE = '洛水之畔，万模同声。'
 export const LUOYIN_MICRO_TAGLINE = '星が落ちる前に、声を見つけよう。'
+export const LUOYIN_WORDMARK_SRC = '/wordmark-luoyin.png'
 
 type LuoyinMarkProps = {
   className?: string
@@ -37,5 +38,19 @@ export function LuoyinMark({ className }: LuoyinMarkProps) {
       <span className='luoyin-mark__star' />
       <span className='luoyin-mark__shine' />
     </span>
+  )
+}
+
+export function LuoyinWordmark({ className }: LuoyinMarkProps) {
+  return (
+    <img
+      src={LUOYIN_WORDMARK_SRC}
+      alt=''
+      draggable={false}
+      className={cn(
+        'h-full w-full object-contain drop-shadow-[0_1px_1px_rgba(38,54,92,0.55)]',
+        className
+      )}
+    />
   )
 }

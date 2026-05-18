@@ -184,44 +184,58 @@ export function PublicHeader(props: PublicHeaderProps) {
       <header className='pointer-events-none fixed inset-x-0 top-0 z-50'>
         <div
           className={cn(
-            'pointer-events-auto mx-auto transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]',
-            scrolled ? 'max-w-[52rem] px-3 pt-3' : 'max-w-7xl px-4 pt-0 md:px-6'
+            'pointer-events-auto mx-auto max-w-7xl px-4 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] md:px-6',
+            scrolled ? 'pt-3' : 'pt-4'
           )}
         >
           <nav
             className={cn(
               'flex items-center justify-between transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]',
-              scrolled
-                ? 'bg-background/60 ring-border/50 h-12 rounded-2xl pr-1.5 pl-4 shadow-[0_2px_16px_-6px_rgba(0,0,0,0.08),0_0_0_0.5px_rgba(0,0,0,0.02)] ring-[0.5px] backdrop-blur-2xl dark:shadow-[0_2px_16px_-6px_rgba(0,0,0,0.4)]'
-                : 'h-16 px-2'
+              scrolled ? 'h-11' : 'h-12'
             )}
           >
             {/* Logo */}
             <Link
               to={homeUrl}
-              className='group flex shrink-0 items-center gap-2.5'
+              aria-label={displaySiteName}
+              className={cn(
+                'group flex shrink-0 items-center rounded-full border border-white/[0.45] bg-white/[0.72] shadow-[0_10px_30px_-18px_rgba(30,41,59,0.55),inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-2xl transition-all duration-300 hover:bg-white/[0.82] dark:border-white/[0.16] dark:bg-white/[0.14]',
+                customLogo ? 'px-3 py-1.5' : 'gap-2.5 px-4 py-2'
+              )}
             >
-              <div className='flex size-7 shrink-0 items-center justify-center transition-all duration-300 group-hover:scale-105'>
-                {loading ? (
-                  <Skeleton className='size-full rounded-lg' />
-                ) : customLogo ? (
-                  customLogo
-                ) : (
-                  <HeaderLogo
-                    src={systemLogo}
-                    loading={loading}
-                    logoLoaded={logoLoaded}
-                    className='size-full rounded-lg object-contain'
-                  />
-                )}
-              </div>
-              <span className='text-sm font-semibold tracking-tight'>
-                {loading ? <Skeleton className='h-4 w-16' /> : displaySiteName}
-              </span>
+              {loading ? (
+                <>
+                  <Skeleton className='size-7 rounded-lg' />
+                  <Skeleton className='h-4 w-16' />
+                </>
+              ) : customLogo ? (
+                <div className='flex h-8 w-32 shrink-0 items-center justify-center transition-all duration-300 group-hover:scale-[1.03] md:w-36'>
+                  {customLogo}
+                </div>
+              ) : (
+                <>
+                  <div className='flex size-7 shrink-0 items-center justify-center transition-all duration-300 group-hover:scale-105'>
+                    <HeaderLogo
+                      src={systemLogo}
+                      loading={loading}
+                      logoLoaded={logoLoaded}
+                      className='size-full rounded-lg object-contain'
+                    />
+                  </div>
+                  <span className='text-sm font-semibold tracking-tight'>
+                    {displaySiteName}
+                  </span>
+                </>
+              )}
             </Link>
 
             {/* Desktop nav */}
-            <div className='hidden items-center gap-0.5 sm:flex'>
+            <div
+              className={cn(
+                'hidden items-center gap-1 rounded-full border border-white/[0.45] bg-white/[0.72] px-2 py-1 text-foreground shadow-[0_10px_30px_-18px_rgba(30,41,59,0.55),inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-2xl transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] sm:flex dark:border-white/[0.16] dark:bg-white/[0.14] dark:text-white',
+                scrolled ? 'min-h-10' : 'min-h-11'
+              )}
+            >
               {links.map((link, i) => {
                 const isActive = pathname === link.href
                 if (link.external) {
@@ -235,7 +249,7 @@ export function PublicHeader(props: PublicHeaderProps) {
                       tabIndex={link.disabled ? -1 : undefined}
                       onClick={(event) => handleNavLinkClick(event, link)}
                       className={cn(
-                        'text-muted-foreground hover:text-foreground rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors duration-200',
+                        'text-muted-foreground hover:text-foreground rounded-full px-3 py-1.5 text-[13px] font-medium transition-colors duration-200 hover:bg-black/[0.06] dark:text-white/[0.72] dark:hover:bg-white/10 dark:hover:text-white',
                         link.disabled && 'pointer-events-none opacity-50'
                       )}
                     >
@@ -250,10 +264,10 @@ export function PublicHeader(props: PublicHeaderProps) {
                     disabled={link.disabled}
                     onClick={(event) => handleNavLinkClick(event, link)}
                     className={cn(
-                      'rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors duration-200',
+                      'rounded-full px-3 py-1.5 text-[13px] font-medium transition-colors duration-200',
                       isActive
-                        ? 'text-foreground'
-                        : 'text-muted-foreground hover:text-foreground',
+                        ? 'bg-black/[0.08] text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.58)] dark:bg-white/[0.14] dark:text-white'
+                        : 'text-muted-foreground hover:bg-black/[0.06] hover:text-foreground dark:text-white/[0.72] dark:hover:bg-white/10 dark:hover:text-white',
                       link.disabled && 'pointer-events-none opacity-50'
                     )}
                   >
@@ -265,7 +279,7 @@ export function PublicHeader(props: PublicHeaderProps) {
               {(showLanguageSwitcher ||
                 showThemeSwitch ||
                 showNotifications) && (
-                <div className='bg-border/40 mx-2 h-4 w-px' />
+                <div className='mx-1.5 h-4 w-px bg-black/10 dark:bg-white/[0.16]' />
               )}
 
               {showLanguageSwitcher && <LanguageSwitcher />}
@@ -279,15 +293,15 @@ export function PublicHeader(props: PublicHeaderProps) {
 
               {showAuthButtons && (
                 <>
-                  <div className='bg-border/40 mx-1 h-4 w-px' />
+                  <div className='mx-1 h-4 w-px bg-black/10 dark:bg-white/[0.16]' />
                   {loading ? (
-                    <Skeleton className='h-8 w-20 rounded-lg' />
+                    <Skeleton className='h-8 w-20 rounded-full bg-black/[0.08] dark:bg-white/[0.18]' />
                   ) : isAuthenticated ? (
                     <ProfileDropdown />
                   ) : (
                     <Button
                       size='sm'
-                      className='h-8 rounded-lg px-3.5 text-xs font-medium'
+                      className='h-8 rounded-full bg-black px-3.5 text-xs font-medium text-white shadow-none hover:bg-black/85 dark:bg-white dark:text-black dark:hover:bg-white/90'
                       render={<Link to='/sign-in' />}
                     >
                       {t('Sign in')}

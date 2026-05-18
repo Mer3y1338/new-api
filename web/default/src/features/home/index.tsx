@@ -21,7 +21,7 @@ import { useAuthStore } from '@/stores/auth-store'
 import { Markdown } from '@/components/ui/markdown'
 import { PublicLayout } from '@/components/layout'
 import { Footer } from '@/components/layout/components/footer'
-import { LUOYIN_BRAND_NAME, LuoyinMark } from '@/custom/luoyin/brand'
+import { LUOYIN_BRAND_NAME, LuoyinWordmark } from '@/custom/luoyin/brand'
 import { Hero } from './components'
 import { useHomePageContent } from './hooks'
 
@@ -36,7 +36,7 @@ export function Home() {
       <PublicLayout
         showMainContainer={false}
         siteName={LUOYIN_BRAND_NAME}
-        logo={<LuoyinMark />}
+        logo={<LuoyinWordmark />}
       >
         <main className='flex min-h-screen items-center justify-center'>
           <div className='text-muted-foreground'>{t('Loading...')}</div>
@@ -50,7 +50,7 @@ export function Home() {
       <PublicLayout
         showMainContainer={false}
         siteName={LUOYIN_BRAND_NAME}
-        logo={<LuoyinMark />}
+        logo={<LuoyinWordmark />}
       >
         <main className='overflow-x-hidden'>
           {isUrl ? (
@@ -73,7 +73,7 @@ export function Home() {
     <PublicLayout
       showMainContainer={false}
       siteName={LUOYIN_BRAND_NAME}
-      logo={<LuoyinMark />}
+      logo={<LuoyinWordmark />}
     >
       <Hero isAuthenticated={isAuthenticated} />
       <div className="absolute bottom-0 left-0 w-full z-20 pb-4">

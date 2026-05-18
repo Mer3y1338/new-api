@@ -20,7 +20,12 @@ import { Link } from '@tanstack/react-router'
 import { ArrowRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
-import { LUOYIN_BRAND_NAME, LUOYIN_MICRO_TAGLINE, LUOYIN_TAGLINE } from '@/custom/luoyin/brand'
+import {
+  LUOYIN_BRAND_NAME,
+  LUOYIN_MICRO_TAGLINE,
+  LUOYIN_TAGLINE,
+} from '@/custom/luoyin/brand'
+import { HeroTerminalDemo } from '../hero-terminal-demo'
 
 interface HeroProps {
   className?: string
@@ -31,26 +36,36 @@ export function Hero(props: HeroProps) {
   const { t } = useTranslation()
 
   return (
-    <section className='relative z-10 flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 pt-28 pb-16 md:pt-36 md:pb-24'>
-      {/* Background Image (Mobile) */}
+    <section className='luoyin-shell relative z-10 flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 pt-28 pb-28 md:pt-32 md:pb-36'>
       <div
         aria-hidden
-        className='absolute inset-0 -z-20 bg-cover bg-center bg-no-repeat block md:hidden'
-        style={{ backgroundImage: 'url(https://api.nyaovo.com/image/api/random?device=mobile)' }}
+        className='absolute inset-0 -z-20 block bg-cover bg-center bg-no-repeat md:hidden'
+        style={{
+          backgroundImage:
+            'url(https://api.nyaovo.com/image/api/random?device=mobile)',
+        }}
       />
-      {/* Background Image (PC) */}
       <div
         aria-hidden
-        className='absolute inset-0 -z-20 bg-cover bg-center bg-no-repeat hidden md:block'
-        style={{ backgroundImage: 'url(https://api.nyaovo.com/image/api/random?device=pc)' }}
+        className='absolute inset-0 -z-20 hidden bg-cover bg-center bg-no-repeat md:block'
+        style={{
+          backgroundImage:
+            'url(https://api.nyaovo.com/image/api/random?device=pc)',
+        }}
       />
-      
-      {/* Overlay to ensure text readability */}
-      <div className="absolute inset-0 -z-10 bg-white/20 dark:bg-black/40 backdrop-blur-[2px]"></div>
 
-      <div className='flex max-w-3xl flex-col items-center text-center z-10'>
+      <div
+        aria-hidden
+        className='pointer-events-none absolute inset-0 -z-10 opacity-[0.18] mix-blend-soft-light'
+        style={{
+          background:
+            'repeating-linear-gradient(0deg, rgba(255,255,255,0.48) 0 1px, rgba(20,24,38,0.26) 1px 3px)',
+        }}
+      />
+
+      <div className='z-10 flex max-w-3xl flex-col items-center text-center'>
         <div
-          className='luoyin-chapter landing-animate-fade-up opacity-0 text-pink-600 dark:text-pink-300 font-bold tracking-wide'
+          className='luoyin-chapter landing-animate-fade-up font-bold text-pink-600 opacity-0 dark:text-pink-300'
           style={{ animationDelay: '0ms' }}
         >
           {t('✨ 欢迎来到我的奇妙 API 世界 🌸')}
@@ -74,12 +89,12 @@ export function Hero(props: HeroProps) {
           {LUOYIN_MICRO_TAGLINE}
         </p>
         <div
-          className='landing-animate-fade-up mt-8 flex items-center gap-3 opacity-0'
+          className='landing-animate-fade-up mt-7 flex items-center gap-3 opacity-0'
           style={{ animationDelay: '250ms' }}
         >
           {props.isAuthenticated ? (
             <Button
-              className='group rounded-full shadow-sm hover:shadow-md transition-shadow'
+              className='group rounded-full shadow-sm transition-shadow hover:shadow-md'
               render={<Link to='/dashboard' />}
             >
               {t('Go to Dashboard')}
@@ -88,7 +103,7 @@ export function Hero(props: HeroProps) {
           ) : (
             <>
               <Button
-                className='group rounded-full shadow-sm hover:shadow-md transition-shadow'
+                className='group rounded-full shadow-sm transition-shadow hover:shadow-md'
                 render={<Link to='/sign-up' />}
               >
                 {t('Get Started')}
@@ -107,18 +122,10 @@ export function Hero(props: HeroProps) {
       </div>
 
       <div
-        className='landing-animate-fade-up w-full max-w-2xl opacity-0 relative mt-16 flex flex-col items-center flex-1'
+        className='landing-animate-fade-up w-full opacity-0'
         style={{ animationDelay: '320ms' }}
       >
-        <div className="w-full rounded-3xl border border-white/40 dark:border-white/20 bg-white/40 dark:bg-black/40 backdrop-blur-xl p-8 md:p-12 text-center shadow-[0_8px_30px_rgb(236,72,153,0.2)] transition-transform hover:scale-[1.02] duration-300 h-full flex flex-col justify-center min-h-[300px]">
-          <div className="text-5xl md:text-6xl mb-6 animate-bounce" style={{ animationDuration: '3s' }}>🌸</div>
-          <h2 className="text-2xl md:text-3xl font-extrabold mb-4 text-foreground tracking-tight">
-            {t('这里是我的专属 API 接口站')}
-          </h2>
-          <p className="text-foreground/80 font-medium text-sm md:text-base leading-relaxed max-w-md mx-auto">
-            {t('日常用的一些大模型接口，稳定、快速、可爱！(๑•̀ㅂ•́)و✧ 欢迎随便逛逛~')}
-          </p>
-        </div>
+        <HeroTerminalDemo />
       </div>
     </section>
   )

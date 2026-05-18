@@ -57,7 +57,7 @@ function FooterLinkItem(props: { link: FooterLink }) {
         href={props.link.href}
         target='_blank'
         rel='noopener noreferrer'
-        className='text-muted-foreground hover:text-foreground text-sm transition-colors duration-200'
+        className='text-slate-700 hover:text-slate-950 text-sm transition-colors duration-200 dark:text-white/72 dark:hover:text-white'
       >
         {label}
       </a>
@@ -67,7 +67,7 @@ function FooterLinkItem(props: { link: FooterLink }) {
   return (
     <Link
       to={props.link.href}
-      className='text-muted-foreground hover:text-foreground text-sm transition-colors duration-200'
+      className='text-slate-700 hover:text-slate-950 text-sm transition-colors duration-200 dark:text-white/72 dark:hover:text-white'
     >
       {label}
     </Link>
@@ -78,14 +78,14 @@ function ProjectAttribution(props: { currentYear: number }) {
   const { t } = useTranslation()
 
   return (
-    <div className='text-muted-foreground/45 text-center text-xs sm:text-right'>
-      <span className='text-muted-foreground/45'>
+    <div className='text-center text-xs text-slate-700/78 sm:text-right dark:text-white/60'>
+      <span>
         &copy; {props.currentYear}{' '}
         <a
           href='https://github.com/QuantumNous/new-api'
           target='_blank'
           rel='noopener noreferrer'
-          className='text-foreground/70 hover:text-foreground font-medium transition-colors'
+          className='font-medium text-slate-950 transition-colors hover:text-black dark:text-white/82 dark:hover:text-white'
         >
           {t('New API')}
         </a>
@@ -172,17 +172,17 @@ export function Footer(props: FooterProps) {
     return (
       <footer
         className={cn(
-          'border-border/40 relative z-10 border-t',
+          'relative z-10 px-4 pb-4 md:pb-5',
           props.className
         )}
       >
-        <div className='mx-auto w-full max-w-6xl px-6 py-5'>
-          <div className='bg-muted/20 border-border/50 flex flex-col items-center justify-between gap-4 rounded-2xl border px-4 py-4 backdrop-blur-sm sm:flex-row sm:px-5'>
+        <div className='mx-auto w-full max-w-6xl'>
+          <div className='flex flex-col items-center justify-between gap-3 rounded-lg border border-white/[0.42] bg-white/[0.42] px-5 py-3 shadow-[0_16px_42px_-28px_rgba(15,23,42,0.42),inset_0_1px_0_rgba(255,255,255,0.5)] backdrop-blur-2xl sm:flex-row sm:px-6 dark:border-white/[0.12] dark:bg-white/10'>
             <div
-              className='custom-footer text-muted-foreground min-w-0 text-center text-sm sm:text-left'
+              className='custom-footer min-w-0 text-center text-sm text-slate-800 sm:text-left dark:text-white/72'
               dangerouslySetInnerHTML={{ __html: footerHtml }}
             />
-            <div className='border-border/60 w-full border-t pt-4 sm:w-auto sm:border-t-0 sm:border-l sm:pt-0 sm:pl-5'>
+            <div className='w-full border-t border-white/[0.28] pt-3 sm:w-auto sm:border-t-0 sm:border-l sm:pt-0 sm:pl-5 dark:border-white/[0.12]'>
               <ProjectAttribution currentYear={currentYear} />
             </div>
           </div>
@@ -193,10 +193,10 @@ export function Footer(props: FooterProps) {
 
   return (
     <footer
-      className={cn('border-border/40 relative z-10 border-t', props.className)}
+      className={cn('relative z-10 px-4 pb-4 md:pb-5', props.className)}
     >
-      <div className='mx-auto max-w-6xl px-6 py-12 md:py-16'>
-        <div className='flex flex-col justify-between gap-10 md:flex-row md:gap-16'>
+      <div className='mx-auto max-w-6xl rounded-lg border border-white/[0.42] bg-white/[0.42] px-5 py-4 shadow-[0_16px_42px_-28px_rgba(15,23,42,0.42),inset_0_1px_0_rgba(255,255,255,0.5)] backdrop-blur-2xl md:px-6 md:py-5 dark:border-white/[0.12] dark:bg-white/10'>
+        <div className='flex flex-col justify-between gap-5 md:flex-row md:gap-8'>
           {/* Brand column */}
           <div className='shrink-0'>
             <Link to='/' className='group flex items-center gap-2.5'>
@@ -205,11 +205,11 @@ export function Footer(props: FooterProps) {
                 alt={displayName}
                 className='size-7 rounded-lg object-contain'
               />
-              <span className='text-sm font-semibold tracking-tight'>
+              <span className='text-sm font-semibold tracking-tight text-slate-950 dark:text-white/88'>
                 {displayName}
               </span>
             </Link>
-            <p className='text-muted-foreground/60 mt-3 max-w-[200px] text-xs leading-relaxed'>
+            <p className='mt-2 max-w-[200px] text-xs leading-relaxed text-slate-700/82 dark:text-white/58'>
               {t('Powerful API Management Platform')}
             </p>
           </div>
@@ -219,10 +219,10 @@ export function Footer(props: FooterProps) {
             <div className='grid grid-cols-3 gap-8 md:gap-16'>
               {displayColumns.map((column, index) => (
                 <div key={index}>
-                  <p className='text-muted-foreground/50 mb-3 text-xs font-medium tracking-wider uppercase'>
+                  <p className='mb-2 text-xs font-medium text-slate-700/76 uppercase dark:text-white/56'>
                     {t(column.title)}
                   </p>
-                  <ul className='space-y-2.5'>
+                  <ul className='space-y-2'>
                     {column.links.map((link, linkIndex) => (
                       <li key={linkIndex}>
                         <FooterLinkItem link={link} />
@@ -236,8 +236,8 @@ export function Footer(props: FooterProps) {
         </div>
 
         {/* Bottom section */}
-        <div className='border-border/30 mt-12 flex flex-col items-center justify-between gap-3 border-t pt-6 sm:flex-row'>
-          <p className='text-muted-foreground/40 text-xs'>
+        <div className='mt-4 flex flex-col items-center justify-between gap-2 border-t border-white/[0.28] pt-3 sm:flex-row dark:border-white/[0.12]'>
+          <p className='text-xs text-slate-700/76 dark:text-white/56'>
             &copy; {currentYear} {displayName}.{' '}
             {props.copyright ?? t('footer.defaultCopyright')}
           </p>
