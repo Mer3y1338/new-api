@@ -75,10 +75,10 @@ export function Home() {
       siteName={LUOYIN_BRAND_NAME}
       logo={<LuoyinMark />}
     >
-      <main className="flex-1 flex flex-col">
-        <Hero isAuthenticated={isAuthenticated} />
-      </main>
-      <Footer name={LUOYIN_BRAND_NAME} />
+      <Hero isAuthenticated={isAuthenticated} />
+      <div className="absolute bottom-0 left-0 w-full z-20 pb-4">
+        <Footer name={LUOYIN_BRAND_NAME} className="bg-transparent border-transparent pt-0 mt-0" />
+      </div>
     </PublicLayout>
   )
 }

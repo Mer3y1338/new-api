@@ -31,38 +31,24 @@ export function Hero(props: HeroProps) {
   const { t } = useTranslation()
 
   return (
-    <section className='luoyin-shell luoyin-hero relative z-10 flex flex-1 flex-col items-center justify-center overflow-hidden px-6 pt-28 pb-16 md:pt-36 md:pb-24'>
-      {/* Layered atmosphere */}
+    <section className='relative z-10 flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 pt-28 pb-16 md:pt-36 md:pb-24'>
+      {/* Background Image (Mobile) */}
       <div
         aria-hidden
-        className='pointer-events-none absolute inset-0 -z-10 opacity-70 dark:opacity-60'
-        style={{
-          background: [
-            'linear-gradient(112deg, oklch(0.85 0.08 340 / 40%) 0 18%, transparent 42%)',
-            'linear-gradient(246deg, oklch(0.88 0.06 250 / 35%) 0 16%, transparent 46%)',
-            'linear-gradient(180deg, transparent 0%, oklch(0.82 0.07 320 / 25%) 100%)',
-          ].join(', '),
-        }}
+        className='absolute inset-0 -z-20 bg-cover bg-center bg-no-repeat block md:hidden'
+        style={{ backgroundImage: 'url(https://api.nyaovo.com/image/api/random?device=mobile)' }}
       />
-      {/* Grid pattern */}
+      {/* Background Image (PC) */}
       <div
         aria-hidden
-        className='absolute inset-0 -z-10 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_30%,black_20%,transparent_100%)] bg-[size:4rem_4rem] opacity-[0.08]'
+        className='absolute inset-0 -z-20 bg-cover bg-center bg-no-repeat hidden md:block'
+        style={{ backgroundImage: 'url(https://api.nyaovo.com/image/api/random?device=pc)' }}
       />
-      <div className='luoyin-stage-lines' aria-hidden='true' />
-      <div className='luoyin-axis' aria-hidden='true'>
-        <span className='luoyin-axis__ring' />
-        <span className='luoyin-axis__ring luoyin-axis__ring--small' />
-      </div>
-      <div className='luoyin-petal-field' aria-hidden='true'>
-        <span />
-        <span />
-        <span />
-        <span />
-        <span />
-      </div>
+      
+      {/* Overlay to ensure text readability */}
+      <div className="absolute inset-0 -z-10 bg-white/20 dark:bg-black/40 backdrop-blur-[2px]"></div>
 
-      <div className='luoyin-hero-copy flex max-w-3xl flex-col items-center text-center'>
+      <div className='flex max-w-3xl flex-col items-center text-center z-10'>
         <div
           className='luoyin-chapter landing-animate-fade-up opacity-0 text-pink-600 dark:text-pink-300 font-bold tracking-wide'
           style={{ animationDelay: '0ms' }}
