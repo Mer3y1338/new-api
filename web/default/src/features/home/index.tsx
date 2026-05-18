@@ -21,6 +21,7 @@ import { useAuthStore } from '@/stores/auth-store'
 import { Markdown } from '@/components/ui/markdown'
 import { PublicLayout } from '@/components/layout'
 import { Footer } from '@/components/layout/components/footer'
+import { LUOYIN_BRAND_NAME, LuoyinMark } from '@/custom/luoyin/brand'
 import { CTA, Features, Hero, HowItWorks, Stats } from './components'
 import { useHomePageContent } from './hooks'
 
@@ -32,7 +33,11 @@ export function Home() {
 
   if (!isLoaded) {
     return (
-      <PublicLayout showMainContainer={false}>
+      <PublicLayout
+        showMainContainer={false}
+        siteName={LUOYIN_BRAND_NAME}
+        logo={<LuoyinMark />}
+      >
         <main className='flex min-h-screen items-center justify-center'>
           <div className='text-muted-foreground'>{t('Loading...')}</div>
         </main>
@@ -42,7 +47,11 @@ export function Home() {
 
   if (content) {
     return (
-      <PublicLayout showMainContainer={false}>
+      <PublicLayout
+        showMainContainer={false}
+        siteName={LUOYIN_BRAND_NAME}
+        logo={<LuoyinMark />}
+      >
         <main className='overflow-x-hidden'>
           {isUrl ? (
             <iframe
@@ -61,13 +70,17 @@ export function Home() {
   }
 
   return (
-    <PublicLayout showMainContainer={false}>
+    <PublicLayout
+      showMainContainer={false}
+      siteName={LUOYIN_BRAND_NAME}
+      logo={<LuoyinMark />}
+    >
       <Hero isAuthenticated={isAuthenticated} />
       <Stats />
       <Features />
       <HowItWorks />
       <CTA isAuthenticated={isAuthenticated} />
-      <Footer />
+      <Footer name={LUOYIN_BRAND_NAME} />
     </PublicLayout>
   )
 }

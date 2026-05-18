@@ -34,6 +34,10 @@ import { NotFoundError } from '@/features/errors/not-found-error'
 import { getSetupStatus } from '@/features/setup/api'
 import { saveAffiliateCode } from '@/features/auth/lib/storage'
 
+const enableDevtools =
+  import.meta.env.MODE === 'development' &&
+  import.meta.env.VITE_ENABLE_DEVTOOLS === 'true'
+
 function RootComponent() {
   // Load system configuration (logo, system name, etc.) from backend
   useSystemConfig({ autoLoad: true })
@@ -50,7 +54,7 @@ function RootComponent() {
       <NavigationProgress />
       <Outlet />
       <Toaster duration={5000} />
-      {import.meta.env.MODE === 'development' && (
+      {enableDevtools && (
         <>
           <ReactQueryDevtools buttonPosition='bottom-left' />
           <TanStackRouterDevtools position='bottom-right' />

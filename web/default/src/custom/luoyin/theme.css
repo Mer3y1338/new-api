@@ -1,0 +1,397 @@
+/*
+Copyright (C) 2023-2026 QuantumNous
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+For commercial licensing, please contact support@quantumnous.com
+*/
+.luoyin-shell {
+  --primary: oklch(0.62 0.18 218);
+  --primary-foreground: oklch(0.99 0.01 210);
+  --ring: oklch(0.68 0.16 222);
+  --chart-1: oklch(0.62 0.18 218);
+  --chart-2: oklch(0.72 0.16 304);
+  --chart-3: oklch(0.82 0.13 350);
+  --sidebar-primary: oklch(0.62 0.18 218);
+  --sidebar-ring: oklch(0.68 0.16 222);
+  --luoyin-ink: oklch(0.28 0.08 255);
+  --luoyin-cyan: oklch(0.72 0.16 210);
+  --luoyin-violet: oklch(0.72 0.16 298);
+  --luoyin-pink: oklch(0.82 0.14 350);
+  --luoyin-paper: oklch(0.99 0.018 230);
+}
+
+.dark .luoyin-shell,
+.luoyin-shell.dark {
+  --background: oklch(0.18 0.025 265);
+  --foreground: oklch(0.97 0.018 230);
+  --card: oklch(0.23 0.03 262);
+  --popover: oklch(0.24 0.032 262);
+  --primary: oklch(0.76 0.13 212);
+  --primary-foreground: oklch(0.16 0.035 260);
+  --secondary: oklch(0.34 0.04 275);
+  --accent: oklch(0.34 0.045 286);
+  --muted: oklch(0.28 0.03 265);
+  --border: oklch(0.86 0.05 235 / 14%);
+  --input: oklch(0.9 0.04 235 / 18%);
+  --ring: oklch(0.77 0.13 216);
+  --luoyin-ink: oklch(0.94 0.04 250);
+  --luoyin-cyan: oklch(0.78 0.14 210);
+  --luoyin-violet: oklch(0.78 0.15 300);
+  --luoyin-pink: oklch(0.86 0.12 350);
+  --luoyin-paper: oklch(0.2 0.038 260);
+}
+
+.luoyin-mark {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  height: 100%;
+  min-width: 1.75rem;
+  min-height: 1.75rem;
+  overflow: hidden;
+  border: 1px solid oklch(0.94 0.07 235 / 68%);
+  border-radius: 0.64rem;
+  background:
+    linear-gradient(135deg, transparent 0 47%, oklch(1 0.02 236 / 44%) 48% 52%, transparent 53%),
+    linear-gradient(150deg, oklch(0.7 0.19 212), oklch(0.7 0.17 297) 48%, oklch(0.86 0.14 350));
+  box-shadow:
+    0 10px 24px oklch(0.56 0.17 230 / 24%),
+    0 0 0 4px oklch(1 0.02 250 / 62%),
+    inset 0 1px 0 oklch(1 0 0 / 56%);
+  transform: rotate(-4deg);
+}
+
+.luoyin-mark__halo {
+  position: absolute;
+  top: -20%;
+  left: -12%;
+  width: 54%;
+  height: 54%;
+  border: 2px solid oklch(0.98 0.04 222 / 76%);
+  border-radius: 999px;
+  transform: rotate(18deg);
+}
+
+.luoyin-mark__river {
+  position: absolute;
+  inset: 50% -18% auto;
+  height: 46%;
+  border-radius: 999px 999px 0.2rem 0.2rem;
+  background:
+    linear-gradient(100deg, transparent 0 16%, oklch(0.98 0.035 218 / 90%) 22% 34%, transparent 40% 54%, oklch(0.98 0.05 316 / 74%) 61% 78%, transparent 84%),
+    linear-gradient(180deg, oklch(0.92 0.08 214 / 82%), oklch(0.67 0.14 225 / 28%));
+  transform: rotate(-9deg);
+}
+
+.luoyin-mark__star {
+  position: absolute;
+  top: 22%;
+  right: 24%;
+  width: 18%;
+  height: 18%;
+  border-radius: 999px;
+  background: oklch(1 0.02 330);
+  box-shadow:
+    -0.55rem 0.4rem 0 -0.18rem oklch(1 0.02 240 / 90%),
+    0.42rem 0.48rem 0 -0.2rem oklch(1 0.02 300 / 80%);
+}
+
+.luoyin-mark__shine {
+  position: absolute;
+  right: 12%;
+  bottom: 12%;
+  width: 26%;
+  height: 3px;
+  border-radius: 999px;
+  background: oklch(1 0.02 320 / 78%);
+  transform: rotate(-32deg);
+}
+
+.luoyin-hero {
+  isolation: isolate;
+  min-height: min(880px, 100svh);
+  background:
+    linear-gradient(180deg, oklch(0.98 0.028 228) 0%, oklch(0.94 0.05 248) 47%, oklch(0.98 0.02 340) 100%);
+}
+
+.dark .luoyin-hero {
+  background:
+    linear-gradient(180deg, oklch(0.14 0.048 263) 0%, oklch(0.19 0.05 266) 47%, oklch(0.18 0.04 305) 100%);
+}
+
+.luoyin-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 12% 20%, oklch(0.74 0.12 210 / 60%) 0 1px, transparent 1.7px),
+    radial-gradient(circle at 28% 34%, oklch(0.86 0.1 315 / 52%) 0 1.2px, transparent 1.9px),
+    radial-gradient(circle at 74% 18%, oklch(0.94 0.08 342 / 56%) 0 1.3px, transparent 2px),
+    radial-gradient(circle at 86% 42%, oklch(0.72 0.12 218 / 48%) 0 1px, transparent 1.7px);
+  background-size: 6.5rem 6.5rem, 8.25rem 8.25rem, 7.5rem 7.5rem, 9rem 9rem;
+  mask-image: linear-gradient(to bottom, black 0%, black 68%, transparent 100%);
+  opacity: 0.82;
+}
+
+.luoyin-hero::after {
+  content: '';
+  position: absolute;
+  right: -12%;
+  bottom: 5%;
+  left: -12%;
+  z-index: -1;
+  height: 29%;
+  pointer-events: none;
+  background:
+    linear-gradient(96deg, transparent 5%, oklch(0.68 0.16 210 / 18%) 22%, oklch(0.82 0.14 315 / 27%) 46%, oklch(0.88 0.12 350 / 20%) 62%, transparent 86%),
+    repeating-linear-gradient(176deg, transparent 0 14px, oklch(0.72 0.12 220 / 20%) 15px 16px);
+  filter: blur(0.2px);
+  transform: skewY(-4deg);
+}
+
+.luoyin-stage-lines {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(118deg, transparent 0 43%, oklch(0.73 0.14 215 / 16%) 43.2% 43.7%, transparent 44%),
+    linear-gradient(118deg, transparent 0 62%, oklch(0.85 0.14 344 / 14%) 62.2% 62.7%, transparent 63%),
+    linear-gradient(90deg, transparent 0 8%, oklch(1 0.02 250 / 42%) 8% 8.25%, transparent 8.5% 91%, oklch(1 0.02 250 / 34%) 91% 91.2%, transparent 91.5%);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 14%, black 78%, transparent 100%);
+}
+
+.luoyin-axis {
+  position: absolute;
+  top: 7.2rem;
+  right: max(2rem, calc((100vw - 72rem) / 2));
+  z-index: -1;
+  width: clamp(8rem, 18vw, 17rem);
+  aspect-ratio: 1;
+  pointer-events: none;
+  opacity: 0.86;
+}
+
+.luoyin-axis::before,
+.luoyin-axis::after,
+.luoyin-axis__ring {
+  position: absolute;
+  content: '';
+  border-radius: 999px;
+}
+
+.luoyin-axis::before {
+  inset: 18%;
+  border: 1px solid oklch(0.72 0.16 213 / 36%);
+  box-shadow: inset 0 0 0 0.45rem oklch(1 0.02 250 / 22%);
+}
+
+.luoyin-axis::after {
+  top: 14%;
+  left: 49%;
+  width: 0.48rem;
+  height: 0.48rem;
+  background: var(--luoyin-pink);
+  box-shadow:
+    -4.4rem 4.3rem 0 -0.08rem var(--luoyin-cyan),
+    3.6rem 5rem 0 -0.12rem var(--luoyin-violet);
+}
+
+.luoyin-axis__ring {
+  inset: 6%;
+  border: 1px dashed oklch(0.73 0.16 286 / 42%);
+  transform: rotate(-18deg);
+}
+
+.luoyin-axis__ring--small {
+  inset: 31%;
+  border-color: oklch(0.85 0.13 350 / 44%);
+  transform: rotate(23deg);
+}
+
+.luoyin-petal-field {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.luoyin-petal-field span {
+  position: absolute;
+  width: 0.7rem;
+  height: 1.05rem;
+  border-radius: 999px 0 999px 999px;
+  background: linear-gradient(145deg, oklch(1 0.02 350 / 86%), oklch(0.86 0.13 345 / 44%));
+  box-shadow: 0 0.5rem 1.3rem oklch(0.74 0.12 330 / 12%);
+  transform: rotate(34deg);
+  animation: luoyin-drift 8s ease-in-out infinite;
+}
+
+.luoyin-petal-field span:nth-child(1) {
+  top: 19%;
+  left: 12%;
+}
+
+.luoyin-petal-field span:nth-child(2) {
+  top: 30%;
+  left: 83%;
+  width: 0.48rem;
+  height: 0.78rem;
+  animation-delay: -2s;
+}
+
+.luoyin-petal-field span:nth-child(3) {
+  top: 62%;
+  left: 20%;
+  width: 0.52rem;
+  height: 0.82rem;
+  animation-delay: -4.5s;
+}
+
+.luoyin-petal-field span:nth-child(4) {
+  top: 54%;
+  left: 74%;
+  animation-delay: -1.2s;
+}
+
+.luoyin-petal-field span:nth-child(5) {
+  top: 14%;
+  left: 64%;
+  width: 0.44rem;
+  height: 0.72rem;
+  animation-delay: -6s;
+}
+
+.luoyin-hero-copy {
+  position: relative;
+}
+
+.luoyin-hero-copy::before {
+  content: '';
+  position: absolute;
+  top: -1.35rem;
+  left: 50%;
+  width: min(22rem, 62vw);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--luoyin-cyan), var(--luoyin-pink), transparent);
+  transform: translateX(-50%);
+}
+
+.luoyin-chapter {
+  margin-bottom: 0.85rem;
+  border: 1px solid oklch(0.7 0.12 230 / 22%);
+  border-radius: 999px;
+  background: oklch(1 0.015 245 / 58%);
+  padding: 0.32rem 0.78rem;
+  color: oklch(0.46 0.12 235);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1;
+  box-shadow: 0 0.8rem 2.2rem oklch(0.57 0.15 230 / 10%);
+  backdrop-filter: blur(16px);
+}
+
+.dark .luoyin-chapter {
+  border-color: oklch(0.82 0.11 260 / 24%);
+  background: oklch(0.22 0.042 266 / 58%);
+  color: oklch(0.84 0.09 220);
+}
+
+.luoyin-title {
+  color: transparent;
+  background:
+    linear-gradient(90deg, oklch(0.43 0.18 218), oklch(0.58 0.19 286) 48%, oklch(0.71 0.17 350)),
+    linear-gradient(180deg, oklch(1 0 0 / 0%), oklch(1 0 0 / 0%));
+  background-clip: text;
+  filter: drop-shadow(0 0.9rem 1.2rem oklch(0.62 0.16 260 / 18%));
+  text-shadow: 0 1px 0 oklch(1 0.02 230 / 68%);
+}
+
+.dark .luoyin-title {
+  background-image: linear-gradient(95deg, oklch(0.84 0.11 212), oklch(0.82 0.12 303) 52%, oklch(0.86 0.1 350));
+}
+
+.luoyin-kicker {
+  color: oklch(0.5 0.1 232);
+  font-weight: 700;
+  text-shadow: 0 0.6rem 1.4rem oklch(0.62 0.16 230 / 16%);
+}
+
+.dark .luoyin-kicker {
+  color: oklch(0.82 0.08 225 / 88%);
+}
+
+.luoyin-auth {
+  background:
+    linear-gradient(180deg, oklch(0.98 0.026 232), oklch(0.95 0.045 292) 58%, oklch(0.99 0.022 350));
+}
+
+.dark .luoyin-auth {
+  background:
+    linear-gradient(180deg, oklch(0.15 0.036 265), oklch(0.19 0.035 278) 55%, oklch(0.2 0.03 322));
+}
+
+.luoyin-auth::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 18% 22%, oklch(0.82 0.12 215 / 58%) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 82% 34%, oklch(0.94 0.1 330 / 48%) 0 1px, transparent 1.7px),
+    linear-gradient(122deg, transparent 0 46%, oklch(0.76 0.13 218 / 12%) 46.2% 46.7%, transparent 47%);
+  background-size: 8rem 8rem, 9rem 9rem;
+  opacity: 0.7;
+}
+
+@keyframes luoyin-drift {
+  0%,
+  100% {
+    translate: 0 0;
+    rotate: 0deg;
+  }
+
+  50% {
+    translate: 0.7rem 1.1rem;
+    rotate: 12deg;
+  }
+}
+
+@media (max-width: 768px) {
+  .luoyin-hero {
+    min-height: 820px;
+  }
+
+  .luoyin-axis {
+    top: 5.75rem;
+    right: -2.5rem;
+    width: 9.5rem;
+    opacity: 0.42;
+  }
+
+  .luoyin-petal-field span:nth-child(3),
+  .luoyin-petal-field span:nth-child(4) {
+    display: none;
+  }
+
+  .luoyin-chapter {
+    margin-bottom: 0.7rem;
+    font-size: 0.62rem;
+  }
+}

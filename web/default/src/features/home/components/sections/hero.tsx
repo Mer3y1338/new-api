@@ -20,6 +20,11 @@ import { Link } from '@tanstack/react-router'
 import { ArrowRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
+import {
+  LUOYIN_BRAND_NAME,
+  LUOYIN_MICRO_TAGLINE,
+  LUOYIN_TAGLINE,
+} from '@/custom/luoyin/brand'
 import { HeroTerminalDemo } from '../hero-terminal-demo'
 
 interface HeroProps {
@@ -31,16 +36,16 @@ export function Hero(props: HeroProps) {
   const { t } = useTranslation()
 
   return (
-    <section className='relative z-10 flex flex-col items-center overflow-hidden px-6 pt-28 pb-16 md:pt-36 md:pb-24'>
-      {/* Radial gradient background */}
+    <section className='luoyin-shell luoyin-hero relative z-10 flex flex-col items-center overflow-hidden px-6 pt-28 pb-16 md:pt-36 md:pb-24'>
+      {/* Layered atmosphere */}
       <div
         aria-hidden
-        className='pointer-events-none absolute inset-0 -z-10 opacity-25 dark:opacity-[0.12]'
+        className='pointer-events-none absolute inset-0 -z-10 opacity-70 dark:opacity-60'
         style={{
           background: [
-            'radial-gradient(ellipse 60% 50% at 20% 20%, oklch(0.72 0.18 250 / 80%) 0%, transparent 70%)',
-            'radial-gradient(ellipse 50% 40% at 80% 15%, oklch(0.65 0.15 200 / 60%) 0%, transparent 70%)',
-            'radial-gradient(ellipse 40% 35% at 40% 80%, oklch(0.70 0.12 280 / 40%) 0%, transparent 70%)',
+            'linear-gradient(112deg, oklch(0.72 0.13 214 / 30%) 0 18%, transparent 42%)',
+            'linear-gradient(246deg, oklch(0.86 0.13 344 / 26%) 0 16%, transparent 46%)',
+            'linear-gradient(180deg, transparent 0%, oklch(0.76 0.11 292 / 18%) 100%)',
           ].join(', '),
         }}
       />
@@ -49,27 +54,47 @@ export function Hero(props: HeroProps) {
         aria-hidden
         className='absolute inset-0 -z-10 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_30%,black_20%,transparent_100%)] bg-[size:4rem_4rem] opacity-[0.08]'
       />
+      <div className='luoyin-stage-lines' aria-hidden='true' />
+      <div className='luoyin-axis' aria-hidden='true'>
+        <span className='luoyin-axis__ring' />
+        <span className='luoyin-axis__ring luoyin-axis__ring--small' />
+      </div>
+      <div className='luoyin-petal-field' aria-hidden='true'>
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+      </div>
 
-      <div className='flex max-w-3xl flex-col items-center text-center'>
-        <h1
-          className='landing-animate-fade-up text-[clamp(2rem,5.5vw,3.5rem)] leading-[1.15] font-bold tracking-tight'
+      <div className='luoyin-hero-copy flex max-w-3xl flex-col items-center text-center'>
+        <div
+          className='luoyin-chapter landing-animate-fade-up opacity-0'
           style={{ animationDelay: '0ms' }}
         >
-          {t('Unified API Gateway for')}
-          <br />
-          <span className='bg-gradient-to-r from-blue-400 via-violet-400 to-purple-500 bg-clip-text text-transparent'>
-            {t('All Your AI Models')}
-          </span>
+          01 / Cloud Axis
+        </div>
+        <h1
+          className='luoyin-title landing-animate-fade-up text-5xl leading-[1.02] font-bold sm:text-6xl md:text-7xl'
+          style={{ animationDelay: '60ms' }}
+        >
+          {LUOYIN_BRAND_NAME}
         </h1>
         <p
-          className='landing-animate-fade-up text-muted-foreground/80 mt-5 max-w-lg text-base leading-relaxed opacity-0 md:text-lg'
-          style={{ animationDelay: '80ms' }}
+          className='landing-animate-fade-up text-muted-foreground/85 mt-5 max-w-lg text-base leading-relaxed opacity-0 md:text-xl'
+          style={{ animationDelay: '130ms' }}
         >
-          {t('Power AI applications, manage digital assets, connect the Future')}
+          {LUOYIN_TAGLINE}
+        </p>
+        <p
+          className='luoyin-kicker landing-animate-fade-up mt-3 text-xs opacity-0 md:text-sm'
+          style={{ animationDelay: '180ms' }}
+        >
+          {LUOYIN_MICRO_TAGLINE}
         </p>
         <div
           className='landing-animate-fade-up mt-8 flex items-center gap-3 opacity-0'
-          style={{ animationDelay: '160ms' }}
+          style={{ animationDelay: '250ms' }}
         >
           {props.isAuthenticated ? (
             <Button
@@ -102,7 +127,7 @@ export function Hero(props: HeroProps) {
 
       <div
         className='landing-animate-fade-up w-full opacity-0'
-        style={{ animationDelay: '300ms' }}
+        style={{ animationDelay: '320ms' }}
       >
         <HeroTerminalDemo />
       </div>
