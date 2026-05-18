@@ -19,7 +19,7 @@ concurrency:
 jobs:
   sync-pr:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
 
     steps:
       - name: Check out fork main
@@ -184,70 +184,7 @@ jobs:
         run: |
           git push --force-with-lease origin "${{ steps.merge.outputs.branch }}"
 
-      - name: Create or update PR
-        if: steps.changes.outputs.has_changes == 'true' && steps.merge.outputs.conflict != 'true'
-        id: pr
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          BRANCH="${{ steps.merge.outputs.branch }}"
-
-          BODY_FILE="$(mktemp)"
-
-          {
-            echo "## Upstream sync"
-            echo
-            echo "这个 PR 是自动同步官方 upstream/main 生成的。"
-            echo
-            echo "请重点查看下方 AI 审查评论，再决定是否合并。"
-            echo
-            echo "### Upstream commits"
-            echo '```txt'
-            cat upstream-review/commits.txt
-            echo '```'
-            echo
-            echo "### Changed files"
-            echo '```txt'
-            cat upstream-review/files.txt
-            echo '```'
-            echo
-            echo "### Diff stat"
-            echo '```txt'
-            cat upstream-review/stat.txt
-            echo '```'
-            echo
-            echo "Actions Run:"
-            echo "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-          } > "$BODY_FILE"
-
-          EXISTING_PR="$(gh pr list --state open --head "$BRANCH" --json number --jq '.[0].number // empty')"
-
-          if [ -n "$EXISTING_PR" ]; then
-            gh pr edit "$EXISTING_PR" \
-              --title "Sync upstream/main" \
-              --body-file "$BODY_FILE" \
-              --add-label "upstream-sync"
-            PR_NUMBER="$EXISTING_PR"
-          else
-            PR_URL="$(gh pr create \
-              --base main \
-              --head "$BRANCH" \
-              --title "Sync upstream/main" \
-              --body-file "$BODY_FILE" \
-              --label "upstream-sync")"
-
-            PR_NUMBER="$(gh pr view "$PR_URL" --json number --jq '.number')"
-          fi
-
-          echo "number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
-
-          {
-            echo "## Pull Request"
-            echo
-            echo "已创建或更新 PR：#${PR_NUMBER}"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Generate AI review
+      - name: Generate detailed AI review
         if: steps.changes.outputs.has_changes == 'true' && steps.merge.outputs.conflict != 'true'
         env:
           ANTHROPIC_BASE_URL: ${{ secrets.ANTHROPIC_BASE_URL }}
@@ -270,45 +207,104 @@ jobs:
           diff = Path("upstream-review/diff-truncated.patch").read_text(errors="replace")
 
           prompt = f"""
-          你现在只做代码审查，不要修改任何文件，不要提交代码，不要创建分支，不要创建 PR。
+          你现在是我的 New API fork 仓库的上游同步审查员。
 
-          这是我的 New API fork 仓库。
-          我自己主要改了前端 UI，尤其是 web/default 相关内容。
-          当前 workflow 已经把 upstream/main 合并到了 sync/upstream-main 分支，并创建或更新了 PR。
+          你的任务不是写代码，不是修改文件，不是创建分支，不是创建 PR。
+          你的任务是：非常详细地审查 upstream/main 本次更新合并到我的 fork 后，是否可能影响我的自定义版本。
 
-          请基于下面的 upstream 更新信息和 diff，输出中文审查报告。
+          背景信息：
+          - 这是 QuantumNous/new-api 的 fork。
+          - 我的 fork 主要改了前端 UI。
+          - 我的自定义主题叫“洛音云枢”。
+          - 我重点关心 web/default 新 UI。
+          - web/classic 如果被影响也要说明。
+          - 后端业务逻辑我一般不改，所以官方后端更新通常可以接受，但仍然需要标出风险。
+          - 我希望你像代码审查员一样认真，不要只写泛泛总结。
 
-          输出格式必须如下：
+          请基于下面的 upstream 更新信息和 diff，输出一份非常详细的中文审查报告。
 
-          ## 1. 本次 upstream 更新概览
+          要求：
+          - 必须基于 diff 内容判断。
+          - 不要泛泛而谈。
+          - 不要编造 diff 里没有的信息。
+          - 如果 diff 被截断，要明确说明“受 diff 截断限制，以下判断可能不完整”。
+          - 如果某个文件只是依赖锁变化，也要说明。
+          - 如果某个文件可能影响构建、路由、主题、首页、导航栏、登录页，要特别标出来。
+          - 如果某个变更可能导致我自定义 UI 被覆盖，要明确提醒。
+          - 如果你认为可以合并，也要说明为什么可以合并。
+          - 如果你认为需要手动检查，要具体说检查哪些文件、看什么。
 
-          ## 2. 主要改动文件
+          输出格式必须严格如下：
 
-          按模块列出：
-          - 前端
-          - 后端
-          - 构建 / Docker / Actions
-          - 依赖
-          - 文档
+          # 🤖 AI 上游同步详细审查报告
 
-          ## 3. 是否影响前端 UI
+          ## 0. 总体结论
 
-          明确回答：是 / 否 / 不确定。
-          如果是，请说明影响哪些文件。
+          用 3 到 6 句话总结：
+          - 本次更新大概是什么性质
+          - 是否适合自动合并
+          - 是否需要我手动看
+          - 对“洛音云枢”主题的总体风险
 
-          ## 4. 是否影响 web/default
+          ## 1. 风险等级
 
-          明确回答：是 / 否 / 不确定。
+          只能选择一个：
 
-          ## 5. 是否影响 web/classic
+          - LOW
+          - MEDIUM
+          - HIGH
 
-          明确回答：是 / 否 / 不确定。
+          然后说明理由。
 
-          ## 6. 是否影响 Dockerfile、构建流程、依赖锁文件
+          判断标准：
+          - LOW：主要是后端 bugfix、文档、小范围非 UI 变更，基本不影响我的主题。
+          - MEDIUM：涉及前端、构建、依赖、路由、登录页、首页、布局，但没有明显破坏性。
+          - HIGH：涉及 web/default 大规模重构、入口文件、路由系统、主题系统、构建流程、Dockerfile，或者可能直接覆盖我的自定义 UI。
 
-          明确回答：是 / 否 / 不确定。
+          ## 2. 是否建议合并
 
-          ## 7. 是否影响后端核心逻辑
+          只能选择一个：
+
+          - 可以自动合并
+          - 建议手动检查后合并
+          - 不建议自动合并
+
+          然后说明原因。
+
+          ## 3. 本次 upstream 更新概览
+
+          请详细说明：
+          - 本次更新主要涉及哪些模块
+          - 是前端更新、后端更新、构建更新、依赖更新，还是混合更新
+          - 改动规模大不大
+          - 是否像重构、修 bug、功能新增、依赖升级、样式调整
+
+          ## 4. 提交列表解读
+
+          根据 upstream commits，逐条解释每个 commit 可能在做什么。
+
+          格式：
+
+          | Commit | 可能含义 | 风险 |
+          |---|---|---|
+
+          如果 commit 信息太少，可以写“不确定”。
+
+          ## 5. 文件改动总览
+
+          按模块分类列出文件。
+
+          必须包含这些分类：
+
+          ### 5.1 前端 web/default
+
+          列出相关文件，说明是否影响我的新 UI 主题。
+
+          ### 5.2 前端 web/classic
+
+          列出相关文件，说明是否影响旧 UI。
+
+          ### 5.3 后端核心逻辑
 
           重点关注：
           - controller
@@ -317,26 +313,128 @@ jobs:
           - router
           - middleware
           - common
+          - service
+          - setting
 
-          ## 8. 是否可能影响我的“洛音云枢”自定义主题
+          ### 5.4 构建与部署
 
-          明确说明是否可能冲突、是否可能覆盖我的首页、导航栏、样式或构建入口。
+          重点关注：
+          - Dockerfile
+          - docker-compose
+          - GitHub Actions
+          - Makefile
+          - package.json
+          - bun.lock
+          - pnpm-lock.yaml
+          - go.mod
+          - go.sum
+          - VERSION
 
-          ## 9. 风险等级
+          ### 5.5 文档与其他文件
 
-          只能选一个：
-          - LOW
-          - MEDIUM
-          - HIGH
+          说明是否只是文档或无风险变更。
 
-          ## 10. 建议
+          ## 6. 逐文件详细审查
 
-          只能选一个：
-          - 可以自动合并
-          - 建议手动检查后合并
-          - 不建议自动合并
+          这是最重要的部分。
 
-          要基于 diff 内容判断，不要泛泛而谈。
+          请对每个重要文件逐个分析，格式如下：
+
+          ### 文件：path/to/file
+
+          - 改动类型：新增 / 修改 / 删除 / 重命名
+          - 所属模块：前端 / 后端 / 构建 / 依赖 / 文档 / 其他
+          - 具体改动内容：
+            - 用人话解释这个文件变了什么
+          - 对我的 fork 的影响：
+            - 是否可能影响“洛音云枢”主题
+            - 是否可能影响首页
+            - 是否可能影响导航栏
+            - 是否可能影响登录页
+            - 是否可能影响模型页、价格页、控制台
+            - 是否可能影响 API 兼容性
+          - 风险等级：LOW / MEDIUM / HIGH
+          - 建议：
+            - 可以忽略 / 合并后检查 / 必须手动看 / 暂不建议合并
+
+          如果文件很多，可以优先详细分析高风险文件，但不能完全跳过前端、构建、后端核心文件。
+
+          ## 7. 对“洛音云枢”主题的专项影响
+
+          请单独判断这些点：
+
+          | 检查项 | 是否受影响 | 说明 |
+          |---|---|---|
+          | 首页入口 | 是/否/不确定 | |
+          | 路由配置 | 是/否/不确定 | |
+          | 顶部导航栏 | 是/否/不确定 | |
+          | 登录页 | 是/否/不确定 | |
+          | 全局样式 | 是/否/不确定 | |
+          | Tailwind / CSS 变量 | 是/否/不确定 | |
+          | 图标 / Logo / favicon | 是/否/不确定 | |
+          | 构建产物 dist | 是/否/不确定 | |
+          | Docker 镜像构建 | 是/否/不确定 | |
+
+          然后给出结论：
+          - 我的主题大概率安全
+          - 我的主题可能需要轻微适配
+          - 我的主题有较大冲突风险
+
+          只能选一个。
+
+          ## 8. 对 New API 功能的影响
+
+          请判断是否可能影响：
+
+          - 用户登录
+          - 令牌管理
+          - 渠道管理
+          - 模型价格
+          - 分组
+          - 额度统计
+          - 中转 API
+          - OpenAI 兼容接口
+          - Anthropic 兼容接口
+          - Gemini 兼容接口
+          - 流式输出
+          - 工具调用
+          - usage 统计
+          - Docker 部署
+
+          每项都尽量给出简短判断。
+
+          ## 9. 需要我手动重点检查的地方
+
+          列出一个清单。
+
+          格式：
+
+          - [ ] 检查 xxx 文件，因为 xxx
+          - [ ] 打开 xxx 页面，因为 xxx
+          - [ ] 测试 xxx API，因为 xxx
+          - [ ] 重新构建镜像，因为 xxx
+
+          不要写空泛内容，必须具体。
+
+          ## 10. 建议的本地/线上验证步骤
+
+          给我一个实际可执行的检查顺序。
+
+          例如：
+          1. 本地 build 哪个前端
+          2. 检查哪个页面
+          3. 测试哪个接口
+          4. 部署后看哪个功能
+          5. 如果失败优先排查哪里
+
+          ## 11. 是否可以合并 PR
+
+          最后再给一个明确结论：
+
+          - 最终建议：可以合并 / 谨慎合并 / 暂不合并
+          - 原因：
+          - 合并前必须检查：
+          - 合并后必须测试：
 
           ===== upstream summary =====
           {summary}
@@ -347,7 +445,7 @@ jobs:
 
           payload = {
               "model": model,
-              "max_tokens": 4096,
+              "max_tokens": 8192,
               "messages": [
                   {
                       "role": "user",
@@ -368,7 +466,7 @@ jobs:
           )
 
           try:
-              with urllib.request.urlopen(req, timeout=180) as resp:
+              with urllib.request.urlopen(req, timeout=240) as resp:
                   raw = resp.read().decode("utf-8", errors="replace")
           except urllib.error.HTTPError as e:
               body = e.read().decode("utf-8", errors="replace")
@@ -392,50 +490,105 @@ jobs:
           if not review:
               review = "AI 审查没有返回文本内容，请检查模型响应。"
 
-          final = f"""<!-- upstream-ai-review -->
+          Path("upstream-review/ai-review.md").write_text(review, encoding="utf-8")
+          print(review)
+          PY
 
-          # 🤖 AI 上游同步审查报告
+      - name: Create or update PR with AI review in body
+        if: steps.changes.outputs.has_changes == 'true' && steps.merge.outputs.conflict != 'true'
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          BRANCH="${{ steps.merge.outputs.branch }}"
+          BODY_FILE="$(mktemp)"
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import os
+
+          commits = Path("upstream-review/commits.txt").read_text(errors="replace")
+          files = Path("upstream-review/files.txt").read_text(errors="replace")
+          stat = Path("upstream-review/stat.txt").read_text(errors="replace")
+          review = Path("upstream-review/ai-review.md").read_text(errors="replace")
+
+          run_url = f"{os.environ.get('GITHUB_SERVER_URL')}/{os.environ.get('GITHUB_REPOSITORY')}/actions/runs/{os.environ.get('GITHUB_RUN_ID')}"
+
+          body = f"""## Upstream sync
+
+          这个 PR 是自动同步官方 `upstream/main` 生成的。
+
+          **请先看下面的 AI 详细审查报告，再决定是否合并。**
+
+          ---
 
           {review}
 
           ---
 
-          Actions Run: {os.environ.get("GITHUB_SERVER_URL")}/{os.environ.get("GITHUB_REPOSITORY")}/actions/runs/{os.environ.get("GITHUB_RUN_ID")}
+          ## Upstream commits
+
+          ```txt
+          {commits}
+          ```
+
+          ## Changed files
+
+          ```txt
+          {files}
+          ```
+
+          ## Diff stat
+
+          ```txt
+          {stat}
+          ```
+
+          ## Actions Run
+
+          {run_url}
           """
 
-          Path("upstream-review/ai-review.md").write_text(final, encoding="utf-8")
-          print(review)
+          # GitHub Issue / PR body 有长度限制，这里留一点安全余量。
+          limit = 60000
+          if len(body) > limit:
+              body = body[:limit] + "\n\n---\n\n[PR 正文过长，已自动截断。请到 Actions 日志查看完整输出。]\n"
+
+          Path("upstream-review/pr-body.md").write_text(body, encoding="utf-8")
           PY
 
-      - name: Comment AI review on PR
-        if: steps.changes.outputs.has_changes == 'true' && steps.merge.outputs.conflict != 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ steps.pr.outputs.number }}
-        run: |
-          COMMENT_FILE="upstream-review/ai-review.md"
+          cp upstream-review/pr-body.md "$BODY_FILE"
 
-          COMMENT_ID="$(
-            gh api "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
-              --jq '.[] | select(.body | contains("<!-- upstream-ai-review -->")) | .id' \
-              | tail -n 1
-          )"
+          EXISTING_PR="$(gh pr list --state open --head "$BRANCH" --json number --jq '.[0].number // empty')"
 
-          jq -n --rawfile body "$COMMENT_FILE" '{body: $body}' > upstream-review/comment-payload.json
+          if [ -n "$EXISTING_PR" ]; then
+            gh pr edit "$EXISTING_PR" \
+              --title "Sync upstream/main" \
+              --body-file "$BODY_FILE" \
+              --add-label "upstream-sync" \
+              --add-label "ai-reviewed"
 
-          if [ -n "$COMMENT_ID" ]; then
-            gh api \
-              --method PATCH \
-              "repos/${GITHUB_REPOSITORY}/issues/comments/${COMMENT_ID}" \
-              --input upstream-review/comment-payload.json
+            PR_NUMBER="$EXISTING_PR"
           else
-            gh api \
-              --method POST \
-              "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
-              --input upstream-review/comment-payload.json
+            PR_URL="$(gh pr create \
+              --base main \
+              --head "$BRANCH" \
+              --title "Sync upstream/main" \
+              --body-file "$BODY_FILE" \
+              --label "upstream-sync,ai-reviewed")"
+
+            PR_NUMBER="$(gh pr view "$PR_URL" --json number --jq '.number')"
           fi
 
-          gh pr edit "$PR_NUMBER" --add-label "ai-reviewed" || true
+          echo "number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "## Pull Request"
+            echo
+            echo "已创建或更新 PR：#${PR_NUMBER}"
+            echo
+            echo "AI 详细审查报告已写入 PR 正文。"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Finish summary
         if: steps.changes.outputs.has_changes == 'true' && steps.merge.outputs.conflict != 'true'
@@ -445,5 +598,5 @@ jobs:
             echo
             echo "已创建或更新 PR：#${{ steps.pr.outputs.number }}"
             echo
-            echo "AI 审查报告已评论到 PR 里。"
+            echo "AI 详细审查报告已直接写进 PR body。"
           } >> "$GITHUB_STEP_SUMMARY"
