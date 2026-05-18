@@ -149,7 +149,7 @@ jobs:
         run: |
           owner_lowercase="$(echo "$GITHUB_REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')"
           short_sha="$(git rev-parse --short=12 HEAD)"
-          image="ghcr.io/${owner_lowercase}/new-api-custom"
+          image="ghcr.io/${owner_lowercase}/new-api"
           echo "image=${image}" >> "$GITHUB_OUTPUT"
           echo "short_sha=${short_sha}" >> "$GITHUB_OUTPUT"
           echo "Image: ${image}"
