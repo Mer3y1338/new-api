@@ -31,7 +31,7 @@ export function Hero(props: HeroProps) {
   const { t } = useTranslation()
 
   return (
-    <section className='luoyin-shell luoyin-hero relative z-10 flex flex-col items-center overflow-hidden px-6 pt-28 pb-16 md:pt-36 md:pb-24'>
+    <section className='luoyin-shell luoyin-hero relative z-10 flex flex-1 flex-col items-center justify-center overflow-hidden px-6 pt-28 pb-16 md:pt-36 md:pb-24'>
       {/* Layered atmosphere */}
       <div
         aria-hidden
@@ -64,7 +64,7 @@ export function Hero(props: HeroProps) {
 
       <div className='luoyin-hero-copy flex max-w-3xl flex-col items-center text-center'>
         <div
-          className='luoyin-chapter landing-animate-fade-up opacity-0 text-pink-500/80 dark:text-pink-400/80 font-medium'
+          className='luoyin-chapter landing-animate-fade-up opacity-0 text-pink-600 dark:text-pink-300 font-bold tracking-wide'
           style={{ animationDelay: '0ms' }}
         >
           {t('✨ 欢迎来到我的奇妙 API 世界 🌸')}
@@ -121,15 +121,15 @@ export function Hero(props: HeroProps) {
       </div>
 
       <div
-        className='landing-animate-fade-up w-full max-w-2xl opacity-0 relative mt-16 flex flex-col items-center'
+        className='landing-animate-fade-up w-full max-w-2xl opacity-0 relative mt-16 flex flex-col items-center flex-1'
         style={{ animationDelay: '320ms' }}
       >
-        <div className="w-full rounded-3xl border border-white/20 dark:border-white/10 bg-white/20 dark:bg-black/20 backdrop-blur-md p-8 md:p-12 text-center shadow-2xl shadow-pink-500/10 transition-transform hover:scale-[1.02] duration-300">
+        <div className="w-full rounded-3xl border border-white/40 dark:border-white/20 bg-white/40 dark:bg-black/40 backdrop-blur-xl p-8 md:p-12 text-center shadow-[0_8px_30px_rgb(236,72,153,0.2)] transition-transform hover:scale-[1.02] duration-300 h-full flex flex-col justify-center min-h-[300px]">
           <div className="text-5xl md:text-6xl mb-6 animate-bounce" style={{ animationDuration: '3s' }}>🌸</div>
-          <h2 className="text-2xl md:text-3xl font-bold mb-4 text-foreground/90 tracking-tight">
+          <h2 className="text-2xl md:text-3xl font-extrabold mb-4 text-foreground tracking-tight">
             {t('这里是我的专属 API 接口站')}
           </h2>
-          <p className="text-muted-foreground text-sm md:text-base leading-relaxed max-w-md mx-auto">
+          <p className="text-foreground/80 font-medium text-sm md:text-base leading-relaxed max-w-md mx-auto">
             {t('日常用的一些大模型接口，稳定、快速、可爱！(๑•̀ㅂ•́)و✧ 欢迎随便逛逛~')}
           </p>
         </div>
