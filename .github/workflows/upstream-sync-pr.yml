@@ -451,12 +451,10 @@ jobs:
 
           重要限制，必须遵守：
           - 只读审查，不要修改业务代码、配置、依赖、锁文件或 workflow。
-          - 最多重点阅读 8 个文件。
-          - 优先阅读 changed files；只有为了确认调用链/影响范围时，才额外查看直接相关文件。
-          - 不要全仓扫描，不要打开大文件，不要读取 dist/build/vendor/node_modules。
+          - 优先阅读 changed files；为了确认调用链/影响范围，可以额外查看相关文件。
+          - 不要读取 dist/build/vendor/node_modules。
           - 不要运行全量测试、构建、安装依赖、联网命令或格式化命令。
           - 允许使用 `git diff`、`git show`、`git grep`、`rg`、`sed`、`head`、`wc` 做小范围检查。
-          - 每个命令输出尽量限制行数，例如 `rg -n ... | head -30`。
           - 你的最终动作只能写入 `upstream-review/ai-review.md`。
           - 如果信息不足，明确写“不确定”，不要编造。
 
@@ -539,11 +537,11 @@ jobs:
           github_token: ${{ github.token }}
           prompt: |
             Read `upstream-review/claude-agent-prompt.md` and follow it exactly.
-            You may inspect only the relevant repository files needed for that bounded review.
+            You may inspect repository files needed for this review.
             Write the final report to `upstream-review/ai-review.md`.
           claude_args: |
             --model ${{ secrets.ANTHROPIC_MODEL }}
-            --max-turns 5
+            --max-turns 20
             --allowedTools "Read,Grep,Glob,Write,Bash(git diff:*),Bash(git show:*),Bash(git grep:*),Bash(rg:*),Bash(sed:*),Bash(head:*),Bash(wc:*)"
             --disallowedTools "Edit,MultiEdit"
 
