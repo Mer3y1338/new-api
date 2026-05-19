@@ -2,6 +2,22 @@ name: Open upstream sync PR
 
 on:
   workflow_dispatch:
+    inputs:
+      target_branch:
+        description: "Branch to sync from upstream"
+        required: false
+        default: main
+        type: string
+      skip_ai_review:
+        description: "Create the sync PR without calling the AI reviewer"
+        required: false
+        default: false
+        type: boolean
+      dry_run:
+        description: "Run checks without pushing a branch, creating issues, or opening a PR"
+        required: false
+        default: false
+        type: boolean
   schedule:
     # 每天北京时间 04:10
     - cron: "10 20 * * *"
@@ -10,28 +26,44 @@ permissions:
   contents: write
   pull-requests: write
   issues: write
-  id-token: write
 
 concurrency:
-  group: upstream-sync-pr
+  group: upstream-sync-pr-${{ github.event.inputs.target_branch || 'main' }}
   cancel-in-progress: false
+
+env:
+  UPSTREAM_URL: https://github.com/QuantumNous/new-api.git
+  TARGET_BRANCH: ${{ github.event.inputs.target_branch || 'main' }}
+  DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+  SKIP_AI_REVIEW: ${{ github.event.inputs.skip_ai_review || 'false' }}
 
 jobs:
   sync-pr:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
 
     steps:
       - name: Check out fork main
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          ref: main
+          ref: ${{ env.TARGET_BRANCH }}
 
       - name: Configure git
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Validate inputs
+        run: |
+          if [ -z "$TARGET_BRANCH" ] || ! git check-ref-format --branch "$TARGET_BRANCH" >/dev/null 2>&1; then
+            echo "::error::Invalid target branch: ${TARGET_BRANCH}"
+            exit 1
+          fi
+
+          echo "Sync target branch: ${TARGET_BRANCH}"
+          echo "Dry run: ${DRY_RUN}"
+          echo "Skip AI review: ${SKIP_AI_REVIEW}"
 
       - name: Ensure labels
         env:
@@ -40,22 +72,44 @@ jobs:
           gh label create "upstream-sync" --color "0969da" --description "Sync updates from upstream" || true
           gh label create "merge-conflict" --color "d1242f" --description "Upstream merge conflict" || true
           gh label create "ai-reviewed" --color "8250df" --description "Reviewed by AI" || true
+          gh label create "ai-review-failed" --color "bf8700" --description "AI review was skipped or failed" || true
+          gh label create "risk-low" --color "2da44e" --description "Low risk upstream sync" || true
+          gh label create "risk-medium" --color "bf8700" --description "Medium risk upstream sync" || true
+          gh label create "risk-high" --color "d1242f" --description "High risk upstream sync" || true
 
-      - name: Fetch upstream
+      - name: Add and fetch upstream
         run: |
-          git remote add upstream https://github.com/QuantumNous/new-api.git || true
-          git fetch upstream main
+          git fetch --prune origin "+refs/heads/${TARGET_BRANCH}:refs/remotes/origin/${TARGET_BRANCH}"
+
+          if git remote get-url upstream >/dev/null 2>&1; then
+            git remote set-url upstream "$UPSTREAM_URL"
+          else
+            git remote add upstream "$UPSTREAM_URL"
+          fi
+
+          git fetch --prune upstream "+refs/heads/${TARGET_BRANCH}:refs/remotes/upstream/${TARGET_BRANCH}"
 
       - name: Check upstream changes
         id: changes
         run: |
-          if git merge-base --is-ancestor upstream/main HEAD; then
+          UPSTREAM_REF="upstream/${TARGET_BRANCH}"
+          BASE="$(git merge-base HEAD "$UPSTREAM_REF")"
+          UPSTREAM_SHA="$(git rev-parse "$UPSTREAM_REF")"
+          FORK_SHA="$(git rev-parse HEAD)"
+
+          {
+            echo "base_sha=${BASE}"
+            echo "upstream_sha=${UPSTREAM_SHA}"
+            echo "fork_sha=${FORK_SHA}"
+          } >> "$GITHUB_OUTPUT"
+
+          if [ "$BASE" = "$UPSTREAM_SHA" ]; then
             echo "has_changes=false" >> "$GITHUB_OUTPUT"
 
             {
               echo "## Upstream Sync"
               echo
-              echo "当前 fork 已经包含 upstream/main 的最新提交，没有需要创建 PR 的更新。"
+              echo "当前 fork 已经包含 upstream/${TARGET_BRANCH} 的最新提交，没有需要创建 PR 的更新。"
             } >> "$GITHUB_STEP_SUMMARY"
 
             exit 0
@@ -65,28 +119,176 @@ jobs:
 
           mkdir -p upstream-review
 
-          git log --oneline HEAD..upstream/main > upstream-review/commits.txt
-          git diff --name-status HEAD..upstream/main > upstream-review/files.txt
-          git diff --stat HEAD..upstream/main > upstream-review/stat.txt
-          git diff HEAD..upstream/main > upstream-review/diff.patch
+          git log --oneline "${BASE}..${UPSTREAM_REF}" > upstream-review/commits.txt
+          git diff --name-status "${BASE}..${UPSTREAM_REF}" > upstream-review/files.txt
+          git diff --name-only "${BASE}..${UPSTREAM_REF}" > upstream-review/file-paths.txt
+          git diff --stat "${BASE}..${UPSTREAM_REF}" > upstream-review/stat.txt
+          git diff "${BASE}..${UPSTREAM_REF}" > upstream-review/diff.patch
+
+          {
+            echo "Target branch: ${TARGET_BRANCH}"
+            echo "Fork sha: ${FORK_SHA}"
+            echo "Upstream sha: ${UPSTREAM_SHA}"
+            echo "Merge base: ${BASE}"
+            echo "Workflow run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          } > upstream-review/metadata.txt
 
           python3 - <<'PY'
+          import os
           from pathlib import Path
 
           patch = Path("upstream-review/diff.patch")
           out = Path("upstream-review/diff-truncated.patch")
 
           text = patch.read_text(errors="replace")
-          limit = 180_000
+          limit = 80_000
 
           if len(text) > limit:
-              text = text[:limit] + "\n\n[DIFF 已截断：原始 diff 过大，只保留前 180000 字符用于 AI 审查]\n"
+              text = text[:limit] + "\n\n[DIFF 已截断：原始 diff 过大，只保留前 80000 字符用于 AI 审查]\n"
 
           out.write_text(text)
           PY
 
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          files_text = Path("upstream-review/files.txt").read_text(errors="replace").splitlines()
+
+          entries = []
+          paths = []
+
+          for line in files_text:
+              if not line.strip():
+                  continue
+
+              parts = line.split("\t")
+              status = parts[0]
+
+              if status.startswith("R") and len(parts) >= 3:
+                  file_paths = parts[1:3]
+              else:
+                  file_paths = parts[1:]
+
+              entries.append((status, file_paths))
+              paths.extend(file_paths)
+
+          def has_prefix(*prefixes):
+              return any(path.startswith(prefixes) for path in paths)
+
+          def has_exact(*names):
+              return any(path in names for path in paths)
+
+          def has_suffix(*suffixes):
+              return any(path.endswith(suffixes) for path in paths)
+
+          root_doc_files = {"README.md", "CHANGELOG.md", "CONTRIBUTING.md", "SECURITY.md", "LICENSE"}
+          docs_suffixes = (".md", ".mdx", ".txt")
+          docs_prefixes = ("docs/", ".github/ISSUE_TEMPLATE/", ".github/PULL_REQUEST_TEMPLATE")
+          docs_only = bool(paths) and all(
+              path.startswith(docs_prefixes)
+              or path in root_doc_files
+              or ("/" not in path and path.endswith(docs_suffixes))
+              for path in paths
+          )
+
+          impact = {
+              "web_default": has_prefix("web/default/"),
+              "web_classic": has_prefix("web/classic/"),
+              "backend_core": has_prefix("controller/", "model/", "relay/", "router/", "middleware/", "common/", "service/", "setting/"),
+              "build_deploy": has_exact("Dockerfile", "docker-compose.yml", "docker-compose.yaml", "Makefile", "go.mod", "go.sum", "VERSION")
+                  or has_prefix(".github/workflows/", "bin/", "docker/", "web/default/")
+                  and (has_suffix("package.json", "bun.lock", "pnpm-lock.yaml", "rsbuild.config.ts", "vite.config.js", "vite.config.ts")
+                       or has_exact("Dockerfile", "Makefile")),
+              "dependency": has_exact("go.mod", "go.sum")
+                  or has_suffix("package.json", "bun.lock", "pnpm-lock.yaml", "package-lock.json", "yarn.lock"),
+              "workflow": has_prefix(".github/workflows/"),
+          }
+
+          high_risk_files = [
+              "web/default/src/main.tsx",
+              "web/default/src/App.tsx",
+              "web/default/src/router.tsx",
+              "web/default/src/routes.tsx",
+              "web/default/src/index.css",
+              "web/default/tailwind.config.js",
+              "web/default/tailwind.config.ts",
+              "web/default/package.json",
+              "web/default/bun.lock",
+              "Dockerfile",
+              ".github/workflows/upstream-sync-pr.yml",
+          ]
+
+          has_high_risk_path = any(path in high_risk_files for path in paths)
+          has_deleted_frontend = any(status.startswith("D") and any(path.startswith(("web/default/", "web/classic/")) for path in file_paths) for status, file_paths in entries)
+
+          if docs_only:
+              risk = "LOW"
+              reason = "Only documentation or static documentation assets changed."
+          elif has_high_risk_path or has_deleted_frontend:
+              risk = "HIGH"
+              reason = "High-impact frontend, workflow, dependency, or build entry files changed."
+          elif impact["web_default"] or impact["web_classic"] or impact["build_deploy"] or impact["dependency"] or impact["workflow"]:
+              risk = "MEDIUM"
+              reason = "Frontend, build, dependency, or workflow files changed."
+          elif impact["backend_core"]:
+              risk = "MEDIUM"
+              reason = "Backend core logic changed."
+          else:
+              risk = "LOW"
+              reason = "No high-impact frontend, build, dependency, workflow, or backend core paths were detected."
+
+          label = {
+              "LOW": "risk-low",
+              "MEDIUM": "risk-medium",
+              "HIGH": "risk-high",
+          }[risk]
+
+          module_lines = [
+              f"- web/default: {'yes' if impact['web_default'] else 'no'}",
+              f"- web/classic: {'yes' if impact['web_classic'] else 'no'}",
+              f"- backend core: {'yes' if impact['backend_core'] else 'no'}",
+              f"- build/deploy: {'yes' if impact['build_deploy'] else 'no'}",
+              f"- dependencies: {'yes' if impact['dependency'] else 'no'}",
+              f"- GitHub Actions: {'yes' if impact['workflow'] else 'no'}",
+              f"- docs only: {'yes' if docs_only else 'no'}",
+          ]
+
+          impact_md = "\n".join([
+              "## Automatic impact analysis",
+              "",
+              f"- Risk: {risk}",
+              f"- Label: {label}",
+              f"- Reason: {reason}",
+              "",
+              "### Module signals",
+              *module_lines,
+              "",
+              "### File count",
+              f"- Changed files: {len(set(paths))}",
+          ])
+
+          Path("upstream-review/impact.md").write_text(impact_md + "\n", encoding="utf-8")
+
+          def write_output(name, value):
+              with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
+                  if "\n" in value:
+                      f.write(f"{name}<<EOF\n{value}\nEOF\n")
+                  else:
+                      f.write(f"{name}={value}\n")
+
+          write_output("risk_level", risk)
+          write_output("risk_label", label)
+          write_output("impact_reason", reason)
+          write_output("impact_summary", impact_md)
+          PY
+
           {
             echo "# Upstream Review Input"
+            echo
+            cat upstream-review/metadata.txt
+            echo
+            cat upstream-review/impact.md
             echo
             echo "## Upstream commits"
             cat upstream-review/commits.txt
@@ -110,19 +312,22 @@ jobs:
             echo '```txt'
             cat upstream-review/files.txt
             echo '```'
+            echo
+            cat upstream-review/impact.md
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Create sync branch and merge upstream
         if: steps.changes.outputs.has_changes == 'true'
         id: merge
         run: |
-          BRANCH="sync/upstream-main"
+          SAFE_BRANCH_NAME="${TARGET_BRANCH//\//-}"
+          BRANCH="sync/upstream-${SAFE_BRANCH_NAME}"
           echo "branch=${BRANCH}" >> "$GITHUB_OUTPUT"
 
-          git checkout -B "$BRANCH" origin/main
+          git checkout -B "$BRANCH" "origin/${TARGET_BRANCH}"
 
           set +e
-          git merge upstream/main --no-edit
+          git merge --no-edit "upstream/${TARGET_BRANCH}"
           CODE=$?
           set -e
 
@@ -131,10 +336,14 @@ jobs:
 
             git diff --name-only --diff-filter=U > upstream-review/conflict-files.txt || true
 
+            if [ ! -s upstream-review/conflict-files.txt ]; then
+              echo "(No unmerged files were reported by git diff --diff-filter=U.)" > upstream-review/conflict-files.txt
+            fi
+
             {
               echo "## Merge conflict"
               echo
-              echo "合并 upstream/main 时出现冲突，未创建同步 PR。"
+              echo "合并 upstream/${TARGET_BRANCH} 时出现冲突，未创建同步 PR。"
               echo
               echo "### Conflict files"
               echo '```txt'
@@ -146,46 +355,68 @@ jobs:
             exit 0
           fi
 
+          git diff --name-status "origin/${TARGET_BRANCH}..HEAD" > upstream-review/merge-files.txt
+          git diff --stat "origin/${TARGET_BRANCH}..HEAD" > upstream-review/merge-stat.txt
+
           echo "conflict=false" >> "$GITHUB_OUTPUT"
 
       - name: Create conflict issue
-        if: steps.changes.outputs.has_changes == 'true' && steps.merge.outputs.conflict == 'true'
+        if: steps.changes.outputs.has_changes == 'true' && steps.merge.outputs.conflict == 'true' && env.DRY_RUN != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           BODY_FILE="$(mktemp)"
+          TITLE="Upstream sync conflict on ${TARGET_BRANCH}"
+          export TITLE
 
           {
-            echo "自动同步 upstream/main 时出现合并冲突。"
+            echo "自动同步 upstream/${TARGET_BRANCH} 时出现合并冲突。"
+            echo
+            echo "- Upstream: ${UPSTREAM_URL}"
+            echo "- Workflow run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo "- Fork commit before sync: ${GITHUB_SHA}"
             echo
             echo "请手动处理以下冲突文件："
             echo
             echo '```txt'
             cat upstream-review/conflict-files.txt
             echo '```'
-            echo
-            echo "Actions Run:"
-            echo "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           } > "$BODY_FILE"
 
-          gh issue create \
-            --title "Upstream sync conflict" \
-            --body-file "$BODY_FILE" \
-            --label "upstream-sync,merge-conflict" || true
+          EXISTING_ISSUE="$(
+            gh issue list \
+              --state open \
+              --label "upstream-sync" \
+              --label "merge-conflict" \
+              --json number,title \
+              --limit 50 |
+            python3 -c 'import json, os, sys; title=os.environ["TITLE"]; issues=json.load(sys.stdin); print(next((str(i["number"]) for i in issues if i.get("title") == title), ""))'
+          )"
+
+          if [ -n "$EXISTING_ISSUE" ]; then
+            gh issue comment "$EXISTING_ISSUE" --body-file "$BODY_FILE"
+            echo "Updated existing conflict issue #${EXISTING_ISSUE}."
+          else
+            gh issue create \
+              --title "$TITLE" \
+              --body-file "$BODY_FILE" \
+              --label "upstream-sync,merge-conflict"
+          fi
 
       - name: Stop on conflict
-        if: steps.changes.outputs.has_changes == 'true' && steps.merge.outputs.conflict == 'true'
+        if: steps.changes.outputs.has_changes == 'true' && steps.merge.outputs.conflict == 'true' && env.DRY_RUN != 'true'
         run: |
-          echo "Merge conflict detected. Stop workflow."
+          echo "::error::Merge conflict detected. Sync PR was not created."
           exit 1
 
       - name: Push sync branch
-        if: steps.changes.outputs.has_changes == 'true' && steps.merge.outputs.conflict != 'true'
+        if: steps.changes.outputs.has_changes == 'true' && steps.merge.outputs.conflict != 'true' && env.DRY_RUN != 'true'
         run: |
-          git push --force-with-lease origin "${{ steps.merge.outputs.branch }}"
+          git push --force-with-lease --set-upstream origin "${{ steps.merge.outputs.branch }}"
 
       - name: Generate detailed AI review
         if: steps.changes.outputs.has_changes == 'true' && steps.merge.outputs.conflict != 'true'
+        id: ai_review
         env:
           ANTHROPIC_BASE_URL: ${{ secrets.ANTHROPIC_BASE_URL }}
           ANTHROPIC_AUTH_TOKEN: ${{ secrets.ANTHROPIC_AUTH_TOKEN }}
@@ -195,22 +426,77 @@ jobs:
           import json
           import os
           import sys
+          import time
           import urllib.request
           import urllib.error
           from pathlib import Path
+          from textwrap import dedent
+
+          def set_output(name, value):
+              with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
+                  f.write(f"{name}={value}\n")
+
+          def write_review(text, status):
+              text = dedent(text).strip()
+              Path("upstream-review/ai-review.md").write_text(text.strip() + "\n", encoding="utf-8")
+              set_output("status", status)
+              print(text)
+
+          skip_ai = os.environ.get("SKIP_AI_REVIEW") == "true"
+          missing = [
+              name for name in ("ANTHROPIC_BASE_URL", "ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_MODEL")
+              if not os.environ.get(name)
+          ]
+
+          if skip_ai:
+              write_review(f"""
+              # 🤖 AI 上游同步详细审查报告
+
+              本次 workflow_dispatch 选择跳过 AI 审查。
+
+              ## 当前状态
+
+              - upstream/{os.environ.get("TARGET_BRANCH", "main")} 已经成功合并到同步分支
+              - 如果不是 dry run，PR 会继续创建或更新
+              - 请根据自动影响分析和 diff 手动判断风险
+
+              ## 最终建议
+
+              - 建议手动检查后合并
+              """, "skipped")
+              sys.exit(0)
+
+          if missing:
+              write_review(f"""
+              # 🤖 AI 上游同步详细审查报告
+
+              AI 审查未运行，因为缺少必要 secret。
+
+              ## 缺少配置
+
+              ```txt
+              {", ".join(missing)}
+              ```
+
+              ## 最终建议
+
+              - 建议手动检查后合并
+              """, "failed")
+              sys.exit(0)
 
           base_url = os.environ["ANTHROPIC_BASE_URL"].rstrip("/")
           token = os.environ["ANTHROPIC_AUTH_TOKEN"]
           model = os.environ["ANTHROPIC_MODEL"]
 
           summary = Path("upstream-review/summary.md").read_text(errors="replace")
+          impact = Path("upstream-review/impact.md").read_text(errors="replace")
           diff = Path("upstream-review/diff-truncated.patch").read_text(errors="replace")
 
-          prompt = f"""
+          prompt = dedent(f"""
           你现在是我的 New API fork 仓库的上游同步审查员。
 
           你的任务不是写代码，不是修改文件，不是创建分支，不是创建 PR。
-          你的任务是：非常详细地审查 upstream/main 本次更新合并到我的 fork 后，是否可能影响我的自定义版本。
+          你的任务是：详细审查 upstream/{os.environ.get("TARGET_BRANCH", "main")} 本次更新合并到我的 fork 后，是否可能影响我的自定义版本。
 
           背景信息：
           - 这是 QuantumNous/new-api 的 fork。
@@ -219,9 +505,8 @@ jobs:
           - 我重点关心 web/default 新 UI。
           - web/classic 如果被影响也要说明。
           - 后端业务逻辑我一般不改，所以官方后端更新通常可以接受，但仍然需要标出风险。
-          - 我希望你像代码审查员一样认真，不要只写泛泛总结。
 
-          请基于下面的 upstream 更新信息和 diff，输出一份非常详细的中文审查报告。
+          请优先参考自动影响分析，再基于 upstream 更新信息和 diff，输出中文审查报告。
 
           要求：
           - 必须基于 diff 内容判断。
@@ -273,7 +558,7 @@ jobs:
 
           ## 3. 本次 upstream 更新概览
 
-          请详细说明：
+          请说明：
           - 本次更新主要涉及哪些模块
           - 是前端更新、后端更新、构建更新、依赖更新，还是混合更新
           - 改动规模大不大
@@ -334,11 +619,11 @@ jobs:
 
           说明是否只是文档或无风险变更。
 
-          ## 6. 逐文件详细审查
+          ## 6. 重要文件逐个审查
 
-          这是最重要的部分。
+          请优先分析高风险文件、前端文件、构建文件、后端核心文件。
 
-          请对每个重要文件逐个分析，格式如下：
+          每个文件格式：
 
           ### 文件：path/to/file
 
@@ -356,8 +641,6 @@ jobs:
           - 风险等级：LOW / MEDIUM / HIGH
           - 建议：
             - 可以忽略 / 合并后检查 / 必须手动看 / 暂不建议合并
-
-          如果文件很多，可以优先详细分析高风险文件，但不能完全跳过前端、构建、后端核心文件。
 
           ## 7. 对“洛音云枢”主题的专项影响
 
@@ -401,11 +684,9 @@ jobs:
           - usage 统计
           - Docker 部署
 
-          每项都尽量给出简短判断。
-
           ## 9. 需要我手动重点检查的地方
 
-          列出一个清单。
+          列出具体清单。
 
           格式：
 
@@ -414,18 +695,9 @@ jobs:
           - [ ] 测试 xxx API，因为 xxx
           - [ ] 重新构建镜像，因为 xxx
 
-          不要写空泛内容，必须具体。
-
           ## 10. 建议的本地/线上验证步骤
 
           给我一个实际可执行的检查顺序。
-
-          例如：
-          1. 本地 build 哪个前端
-          2. 检查哪个页面
-          3. 测试哪个接口
-          4. 部署后看哪个功能
-          5. 如果失败优先排查哪里
 
           ## 11. 是否可以合并 PR
 
@@ -439,13 +711,17 @@ jobs:
           ===== upstream summary =====
           {summary}
 
+          ===== automatic impact analysis =====
+          {impact}
+
           ===== diff =====
           {diff}
-          """
+          """)
 
           payload = {
               "model": model,
               "max_tokens": 8192,
+              "stream": True,
               "messages": [
                   {
                       "role": "user",
@@ -454,71 +730,198 @@ jobs:
               ]
           }
 
-          req = urllib.request.Request(
-              f"{base_url}/v1/messages",
-              data=json.dumps(payload).encode("utf-8"),
-              headers={
-                  "x-api-key": token,
-                  "anthropic-version": "2023-06-01",
-                  "content-type": "application/json"
-              },
-              method="POST"
-          )
+          def call_ai_once(attempt: int) -> str:
+              req = urllib.request.Request(
+                  f"{base_url}/v1/messages",
+                  data=json.dumps(payload).encode("utf-8"),
+                  headers={
+                      "x-api-key": token,
+                      "anthropic-version": "2023-06-01",
+                      "content-type": "application/json"
+                  },
+                  method="POST"
+              )
 
-          try:
-              with urllib.request.urlopen(req, timeout=240) as resp:
-                  raw = resp.read().decode("utf-8", errors="replace")
-          except urllib.error.HTTPError as e:
-              body = e.read().decode("utf-8", errors="replace")
-              print("AI review request failed:", file=sys.stderr)
-              print(body, file=sys.stderr)
-              raise
+              texts = []
+              print(f"AI review attempt {attempt}/3 started, using stream mode...", flush=True)
 
-          data = json.loads(raw)
-          parts = data.get("content", [])
+              # timeout 是单次 socket read timeout，不是总时长。
+              # stream 模式下只要上游持续吐数据，就不会像非流式那样一直等完整响应。
+              with urllib.request.urlopen(req, timeout=900) as resp:
+                  for raw_line in resp:
+                      line = raw_line.decode("utf-8", errors="replace").strip()
 
-          texts = []
-          for part in parts:
-              if isinstance(part, dict):
-                  if part.get("type") == "text":
-                      texts.append(part.get("text", ""))
-                  elif "text" in part:
-                      texts.append(part.get("text", ""))
+                      if not line:
+                          continue
 
-          review = "\n".join(texts).strip()
+                      if not line.startswith("data:"):
+                          continue
 
-          if not review:
-              review = "AI 审查没有返回文本内容，请检查模型响应。"
+                      data_text = line[len("data:"):].strip()
 
-          Path("upstream-review/ai-review.md").write_text(review, encoding="utf-8")
-          print(review)
+                      if data_text == "[DONE]":
+                          break
+
+                      try:
+                          event = json.loads(data_text)
+                      except json.JSONDecodeError:
+                          continue
+
+                      event_type = event.get("type")
+
+                      if event_type == "error":
+                          raise RuntimeError(f"AI stream error: {event}")
+
+                      # Anthropic Messages SSE: content_block_delta / text_delta
+                      if event_type == "content_block_delta":
+                          delta = event.get("delta") or {}
+                          if delta.get("type") == "text_delta":
+                              chunk = delta.get("text", "")
+                              if chunk:
+                                  texts.append(chunk)
+                                  print(chunk, end="", flush=True)
+                          continue
+
+                      # 兼容某些网关可能直接给 delta.text
+                      delta = event.get("delta")
+                      if isinstance(delta, dict) and "text" in delta:
+                          chunk = delta.get("text", "")
+                          if chunk:
+                              texts.append(chunk)
+                              print(chunk, end="", flush=True)
+                          continue
+
+                      # 兼容某些网关可能给 content 数组
+                      content = event.get("content")
+                      if isinstance(content, list):
+                          for part in content:
+                              if isinstance(part, dict) and part.get("type") == "text":
+                                  chunk = part.get("text", "")
+                                  if chunk:
+                                      texts.append(chunk)
+                                      print(chunk, end="", flush=True)
+
+              print("\nAI review stream finished.", flush=True)
+
+              review = "".join(texts).strip()
+
+              if not review:
+                  raise RuntimeError("AI review returned empty text.")
+
+              return review
+
+          last_error = ""
+
+          for attempt in range(1, 4):
+              try:
+                  review = call_ai_once(attempt)
+                  Path("upstream-review/ai-review.md").write_text(review, encoding="utf-8")
+                  set_output("status", "ok")
+                  print("\nAI review saved to upstream-review/ai-review.md", flush=True)
+                  sys.exit(0)
+
+              except Exception as e:
+                  last_error = repr(e)
+                  print(f"\nAI review attempt {attempt}/3 failed: {last_error}", file=sys.stderr, flush=True)
+
+                  if isinstance(e, urllib.error.HTTPError):
+                      try:
+                          body = e.read().decode("utf-8", errors="replace")
+                          print("HTTP error body:", body, file=sys.stderr, flush=True)
+                      except Exception:
+                          pass
+
+                  if attempt < 3:
+                      sleep_seconds = 30 * attempt
+                      print(f"Retrying in {sleep_seconds} seconds...", file=sys.stderr, flush=True)
+                      time.sleep(sleep_seconds)
+
+          fallback = dedent(f"""
+          # 🤖 AI 上游同步详细审查报告
+
+          AI 审查在 3 次重试后仍然没有成功完成。
+
+          ## 当前状态
+
+          - upstream/{os.environ.get("TARGET_BRANCH", "main")} 已经成功合并到同步分支
+          - 同步分支已经生成
+          - 如果不是 dry run，PR 仍会正常创建
+          - 但这次没有可靠的 AI 审查结论
+
+          ## 失败原因
+
+          ```txt
+          {last_error}
+          ```
+
+          ## 风险等级
+
+          - UNKNOWN
+
+          ## 最终建议
+
+          - 建议手动检查后合并
+
+          ## 你需要重点检查
+
+          - [ ] 是否修改了 `web/default`
+          - [ ] 是否修改了 `web/classic`
+          - [ ] 是否修改了 `Dockerfile`
+          - [ ] 是否修改了 `.github/workflows`
+          - [ ] 是否修改了 `package.json` / lock 文件
+          - [ ] 是否影响你的“洛音云枢”首页、导航栏、登录页和全局样式
+          - [ ] 合并后是否能正常构建 Docker 镜像
+
+          ## 说明
+
+          这不是合并失败，只是 AI 审查失败。代码同步分支已经生成，PR 仍然可以打开查看。
+          """)
+
+          Path("upstream-review/ai-review.md").write_text(fallback, encoding="utf-8")
+          set_output("status", "failed")
+          print(fallback)
           PY
 
       - name: Create or update PR with AI review in body
-        if: steps.changes.outputs.has_changes == 'true' && steps.merge.outputs.conflict != 'true'
+        if: steps.changes.outputs.has_changes == 'true' && steps.merge.outputs.conflict != 'true' && env.DRY_RUN != 'true'
         id: pr
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           BRANCH="${{ steps.merge.outputs.branch }}"
+          RISK_LABEL="${{ steps.changes.outputs.risk_label }}"
+          AI_STATUS="${{ steps.ai_review.outputs.status }}"
           BODY_FILE="$(mktemp)"
 
           python3 - <<'PY'
           from pathlib import Path
           import os
+          from textwrap import dedent
 
           commits = Path("upstream-review/commits.txt").read_text(errors="replace")
           files = Path("upstream-review/files.txt").read_text(errors="replace")
           stat = Path("upstream-review/stat.txt").read_text(errors="replace")
+          metadata = Path("upstream-review/metadata.txt").read_text(errors="replace")
+          impact = Path("upstream-review/impact.md").read_text(errors="replace")
           review = Path("upstream-review/ai-review.md").read_text(errors="replace")
+          target_branch = os.environ.get("TARGET_BRANCH", "main")
 
           run_url = f"{os.environ.get('GITHUB_SERVER_URL')}/{os.environ.get('GITHUB_REPOSITORY')}/actions/runs/{os.environ.get('GITHUB_RUN_ID')}"
 
-          body = f"""## Upstream sync
+          body = dedent(f"""\
+          ## Upstream sync
 
-          这个 PR 是自动同步官方 `upstream/main` 生成的。
+          这个 PR 是自动同步官方 `upstream/{target_branch}` 生成的。
 
           **请先看下面的 AI 详细审查报告，再决定是否合并。**
+
+          ## Metadata
+
+          ```txt
+          {metadata}
+          ```
+
+          {impact}
 
           ---
 
@@ -547,9 +950,8 @@ jobs:
           ## Actions Run
 
           {run_url}
-          """
+          """)
 
-          # GitHub Issue / PR body 有长度限制，这里留一点安全余量。
           limit = 60000
           if len(body) > limit:
               body = body[:limit] + "\n\n---\n\n[PR 正文过长，已自动截断。请到 Actions 日志查看完整输出。]\n"
@@ -563,19 +965,40 @@ jobs:
 
           if [ -n "$EXISTING_PR" ]; then
             gh pr edit "$EXISTING_PR" \
-              --title "Sync upstream/main" \
+              --title "Sync upstream/${TARGET_BRANCH}" \
               --body-file "$BODY_FILE" \
               --add-label "upstream-sync" \
-              --add-label "ai-reviewed"
+              --add-label "$RISK_LABEL"
+
+            gh pr edit "$EXISTING_PR" --remove-label "risk-low" || true
+            gh pr edit "$EXISTING_PR" --remove-label "risk-medium" || true
+            gh pr edit "$EXISTING_PR" --remove-label "risk-high" || true
+            gh pr edit "$EXISTING_PR" --remove-label "ai-reviewed" || true
+            gh pr edit "$EXISTING_PR" --remove-label "ai-review-failed" || true
+            gh pr edit "$EXISTING_PR" --add-label "$RISK_LABEL"
+
+            if [ "$AI_STATUS" = "ok" ]; then
+              gh pr edit "$EXISTING_PR" --add-label "ai-reviewed"
+            else
+              gh pr edit "$EXISTING_PR" --add-label "ai-review-failed"
+            fi
 
             PR_NUMBER="$EXISTING_PR"
           else
+            LABEL_ARGS=(--label "upstream-sync" --label "$RISK_LABEL")
+
+            if [ "$AI_STATUS" = "ok" ]; then
+              LABEL_ARGS+=(--label "ai-reviewed")
+            else
+              LABEL_ARGS+=(--label "ai-review-failed")
+            fi
+
             PR_URL="$(gh pr create \
-              --base main \
+              --base "$TARGET_BRANCH" \
               --head "$BRANCH" \
-              --title "Sync upstream/main" \
+              --title "Sync upstream/${TARGET_BRANCH}" \
               --body-file "$BODY_FILE" \
-              --label "upstream-sync,ai-reviewed")"
+              "${LABEL_ARGS[@]}")"
 
             PR_NUMBER="$(gh pr view "$PR_URL" --json number --jq '.number')"
           fi
@@ -587,16 +1010,38 @@ jobs:
             echo
             echo "已创建或更新 PR：#${PR_NUMBER}"
             echo
-            echo "AI 详细审查报告已写入 PR 正文。"
+            echo "自动风险等级：${{ steps.changes.outputs.risk_level }}"
+            echo
+            echo "AI 审查报告已写入 PR 正文。"
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Dry run summary
+        if: steps.changes.outputs.has_changes == 'true' && env.DRY_RUN == 'true'
+        run: |
+          {
+            echo "## Dry run"
+            echo
+            echo "已完成检查和本地合并演练，但没有推送分支、创建 issue 或创建 PR。"
+            echo
+            echo "自动风险等级：${{ steps.changes.outputs.risk_level }}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload review artifacts
+        if: always() && steps.changes.outputs.has_changes == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: upstream-review-${{ github.run_id }}
+          path: upstream-review/
+          if-no-files-found: ignore
+          retention-days: 14
+
       - name: Finish summary
-        if: steps.changes.outputs.has_changes == 'true' && steps.merge.outputs.conflict != 'true'
+        if: steps.changes.outputs.has_changes == 'true' && steps.merge.outputs.conflict != 'true' && env.DRY_RUN != 'true'
         run: |
           {
             echo "## Done"
             echo
             echo "已创建或更新 PR：#${{ steps.pr.outputs.number }}"
             echo
-            echo "AI 详细审查报告已直接写进 PR body。"
+            echo "AI 审查报告已直接写进 PR body。"
           } >> "$GITHUB_STEP_SUMMARY"
