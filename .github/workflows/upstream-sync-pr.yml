@@ -67,7 +67,7 @@ jobs:
 
       - name: Ensure labels
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.UPSTREAM_SYNC_TOKEN || github.token }}
         run: |
           ensure_label() {
             local name="$1"
@@ -377,7 +377,7 @@ jobs:
       - name: Create conflict issue
         if: steps.changes.outputs.has_changes == 'true' && steps.merge.outputs.conflict == 'true' && env.DRY_RUN != 'true'
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.UPSTREAM_SYNC_TOKEN || github.token }}
         run: |
           BODY_FILE="$(mktemp)"
           TITLE="Upstream sync conflict on ${TARGET_BRANCH}"
@@ -900,7 +900,7 @@ jobs:
         if: steps.changes.outputs.has_changes == 'true' && steps.merge.outputs.conflict != 'true' && env.DRY_RUN != 'true'
         id: pr
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.UPSTREAM_SYNC_TOKEN || github.token }}
         run: |
           BRANCH="${{ steps.merge.outputs.branch }}"
           RISK_LABEL="${{ steps.changes.outputs.risk_label }}"
@@ -1017,11 +1017,43 @@ jobs:
               AI_LABEL="ai-review-failed"
             fi
 
+            set +e
             PR_URL="$(gh pr create \
               --base "$TARGET_BRANCH" \
               --head "$BRANCH" \
               --title "Sync upstream/${TARGET_BRANCH}" \
-              --body-file "$BODY_FILE")"
+              --body-file "$BODY_FILE" 2> upstream-review/pr-create-error.txt)"
+            CREATE_CODE=$?
+            set -e
+
+            if [ "$CREATE_CODE" -ne 0 ]; then
+              {
+                echo "## Pull Request creation failed"
+                echo
+                echo "同步分支已经推送成功，但 GitHub CLI 没有权限创建 PR。"
+                echo
+                echo "- Branch: \`${BRANCH}\`"
+                echo "- Base: \`${TARGET_BRANCH}\`"
+                echo "- Body file: \`upstream-review/pr-body.md\`"
+                echo
+                echo "### Error"
+                echo '```txt'
+                cat upstream-review/pr-create-error.txt
+                echo '```'
+                echo
+                echo "### Fix"
+                echo
+                echo "任选一种："
+                echo
+                echo "1. 在仓库 Settings -> Actions -> General 中启用 Read and write permissions，并允许 GitHub Actions 创建/批准 PR。"
+                echo "2. 创建一个有 repo / pull request 权限的 PAT，保存为仓库 secret：\`UPSTREAM_SYNC_TOKEN\`。"
+                echo
+                echo "AI 审查报告和 PR 正文已经保存在 artifact 里，没有丢。"
+              } >> "$GITHUB_STEP_SUMMARY"
+
+              echo "::error::Failed to create PR. Configure workflow permissions or secret UPSTREAM_SYNC_TOKEN."
+              exit 1
+            fi
 
             PR_NUMBER="$(gh pr view "$PR_URL" --json number --jq '.number')"
           fi
