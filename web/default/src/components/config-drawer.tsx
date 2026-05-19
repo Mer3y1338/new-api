@@ -40,6 +40,7 @@ import {
 } from '@/lib/theme-customization'
 import { cn } from '@/lib/utils'
 import { useDirection } from '@/context/direction-provider'
+import { useFont } from '@/context/font-provider'
 import { type Collapsible, useLayout } from '@/context/layout-provider'
 import { useThemeCustomization } from '@/context/theme-customization-provider'
 import { useTheme } from '@/context/theme-provider'
@@ -61,6 +62,7 @@ export function ConfigDrawer() {
   const { t } = useTranslation()
   const { setOpen } = useSidebar()
   const { resetDir } = useDirection()
+  const { resetFont } = useFont()
   const { resetTheme } = useTheme()
   const { resetLayout } = useLayout()
   const { resetCustomization } = useThemeCustomization()
@@ -68,6 +70,7 @@ export function ConfigDrawer() {
   const handleReset = () => {
     setOpen(true)
     resetDir()
+    resetFont()
     resetTheme()
     resetLayout()
     resetCustomization()

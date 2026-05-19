@@ -77,7 +77,7 @@ export function Hero(props: HeroProps) {
           {LUOYIN_BRAND_NAME}
         </h1>
         <p
-          className='landing-animate-fade-up text-muted-foreground/85 mt-5 max-w-lg text-base leading-relaxed opacity-0 md:text-xl'
+          className='landing-animate-fade-up mt-5 max-w-lg text-base leading-relaxed font-semibold text-white opacity-0 drop-shadow-[0_2px_8px_rgba(0,0,0,0.88)] md:text-xl'
           style={{ animationDelay: '130ms' }}
         >
           {LUOYIN_TAGLINE}

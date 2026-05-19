@@ -340,8 +340,11 @@ For commercial licensing, please contact support@quantumnous.com
     linear-gradient(90deg, oklch(0.43 0.18 218), oklch(0.58 0.19 286) 48%, oklch(0.71 0.17 350)),
     linear-gradient(180deg, oklch(1 0 0 / 0%), oklch(1 0 0 / 0%));
   background-clip: text;
-  filter: drop-shadow(0 0.9rem 1.2rem oklch(0.62 0.16 260 / 18%));
-  text-shadow: 0 1px 0 oklch(1 0.02 230 / 68%);
+  -webkit-text-stroke: 1px oklch(1 0.02 230 / 58%);
+  filter:
+    drop-shadow(0 0.18rem 0.22rem oklch(0 0 0 / 58%))
+    drop-shadow(0 0.85rem 1.15rem oklch(0 0 0 / 22%));
+  text-shadow: 0 2px 10px oklch(0 0 0 / 52%);
 }
 
 .dark .luoyin-title {
@@ -349,13 +352,15 @@ For commercial licensing, please contact support@quantumnous.com
 }
 
 .luoyin-kicker {
-  color: oklch(0.5 0.1 232);
+  color: oklch(0.98 0.025 230);
   font-weight: 700;
-  text-shadow: 0 0.6rem 1.4rem oklch(0.62 0.16 230 / 16%);
+  text-shadow:
+    0 1px 2px oklch(0 0 0 / 88%),
+    0 0.35rem 0.9rem oklch(0 0 0 / 62%);
 }
 
 .dark .luoyin-kicker {
-  color: oklch(0.82 0.08 225 / 88%);
+  color: oklch(0.96 0.03 230);
 }
 
 .luoyin-auth {

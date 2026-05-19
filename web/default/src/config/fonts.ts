@@ -22,7 +22,8 @@ For commercial licensing, please contact support@quantumnous.com
  *
  * 📝 How to Add a New Font (Tailwind v4+):
  * 1. Add the font name here.
- * 2. Update the `<link>` tag in 'index.html' to include the new font from CDN or other source.
+ * 2. Update the `<link>` tag in 'index.html' or add an `@font-face` in
+ *    'theme.css' to include the new font.
  * 3. Add the new font family to 'theme.css' using the `@theme inline` and `font-family` CSS variable.
  *
  * Example:
@@ -34,4 +35,14 @@ For commercial licensing, please contact support@quantumnous.com
  *      --font-roboto: 'Roboto', var(--font-sans);
  *   }
  */
-export const fonts = ['inter', 'manrope', 'system'] as const
+export const fonts = ['aigei-cheese', 'inter', 'manrope', 'system'] as const
+
+export type Font = (typeof fonts)[number]
+
+export const fontConfig = {
+  defaultFont: 'aigei-cheese',
+  respectSavedFontPreference: false,
+} as const satisfies {
+  defaultFont: Font
+  respectSavedFontPreference: boolean
+}

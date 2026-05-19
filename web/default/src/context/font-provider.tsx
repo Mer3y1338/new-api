@@ -17,10 +17,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { createContext, useContext, useEffect, useState } from 'react'
-import { fonts } from '@/config/fonts'
+import { type Font, fontConfig, fonts } from '@/config/fonts'
 import { getCookie, setCookie, removeCookie } from '@/lib/cookies'
-
-type Font = (typeof fonts)[number]
 
 const FONT_COOKIE_NAME = 'font'
 const FONT_COOKIE_MAX_AGE = 60 * 60 * 24 * 365 // 1 year
@@ -36,7 +34,13 @@ const FontContext = createContext<FontContextType | null>(null)
 export function FontProvider({ children }: { children: React.ReactNode }) {
   const [font, _setFont] = useState<Font>(() => {
     const savedFont = getCookie(FONT_COOKIE_NAME)
-    return fonts.includes(savedFont as Font) ? (savedFont as Font) : fonts[0]
+    if (
+      fontConfig.respectSavedFontPreference &&
+      fonts.includes(savedFont as Font)
+    ) {
+      return savedFont as Font
+    }
+    return fontConfig.defaultFont
   })
 
   useEffect(() => {
@@ -58,7 +62,7 @@ export function FontProvider({ children }: { children: React.ReactNode }) {
 
   const resetFont = () => {
     removeCookie(FONT_COOKIE_NAME)
-    _setFont(fonts[0])
+    _setFont(fontConfig.defaultFont)
   }
 
   return (

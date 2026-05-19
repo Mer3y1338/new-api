@@ -18,8 +18,17 @@ For commercial licensing, please contact support@quantumnous.com
 */
 @custom-variant dark (&:is(.dark *));
 
+@font-face {
+  font-family: 'Aigei Cheese';
+  src: url('../assets/fonts/aigei-cheese.ttf') format('truetype');
+  font-display: swap;
+}
+
 @theme inline {
-  --font-sans: 'Public Sans', sans-serif;
+  --font-sans: var(--app-font-family);
+  --font-aigei-cheese:
+    'Aigei Cheese', 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    sans-serif;
   --font-inter:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
     'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
@@ -77,9 +86,33 @@ For commercial licensing, please contact support@quantumnous.com
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+html.font-aigei-cheese {
+  --app-font-family:
+    'Aigei Cheese', 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    sans-serif;
+}
+
+html.font-inter {
+  --app-font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+html.font-manrope {
+  --app-font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+html.font-system {
+  --app-font-family:
+    system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
 :root {
   --radius: 0.5rem;
   --app-header-height: 3rem;
+  --app-font-family: 'Public Sans', sans-serif;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
