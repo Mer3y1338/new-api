@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useMemo } from 'react'
-import { Link } from '@tanstack/react-router'
+import { Link, useRouterState } from '@tanstack/react-router'
 import { Menu } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -33,26 +33,27 @@ type TopNavProps = React.HTMLAttributes<HTMLElement> & {
   links: TopNavLink[]
 }
 
-/**
- * 顶部导航栏组件
- * 在大屏幕显示水平导航，在小屏幕显示下拉菜单
- */
 export function TopNav({ className, links, ...props }: TopNavProps) {
-  // 规范化链接，确保所有可选属性都有默认值
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  })
+
   const normalizedLinks = useMemo(
     () =>
       links.map((link) => ({
-        isActive: false,
+        isActive:
+          link.href === '/'
+            ? pathname === '/'
+            : pathname === link.href || pathname.startsWith(`${link.href}/`),
         disabled: false,
         external: false,
         ...link,
       })),
-    [links]
+    [links, pathname]
   )
 
   return (
     <>
-      {/* 移动端下拉菜单 */}
       <div className='lg:hidden'>
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger
@@ -71,15 +72,23 @@ export function TopNav({ className, links, ...props }: TopNavProps) {
                         href={href}
                         target='_blank'
                         rel='noopener noreferrer'
-                        className={!isActive ? 'text-muted-foreground' : ''}
+                        aria-disabled={disabled}
+                        tabIndex={disabled ? -1 : undefined}
+                        className={cn(
+                          !isActive && 'text-muted-foreground',
+                          disabled && 'pointer-events-none opacity-50'
+                        )}
                       >
                         {title}
                       </a>
                     ) : (
                       <Link
                         to={href}
-                        className={!isActive ? 'text-muted-foreground' : ''}
                         disabled={disabled}
+                        className={cn(
+                          !isActive && 'text-muted-foreground',
+                          disabled && 'pointer-events-none opacity-50'
+                        )}
                       >
                         {title}
                       </Link>
@@ -92,10 +101,9 @@ export function TopNav({ className, links, ...props }: TopNavProps) {
         </DropdownMenu>
       </div>
 
-      {/* 桌面端水平导航 */}
       <nav
         className={cn(
-          'hidden items-center space-x-4 lg:flex lg:space-x-4 xl:space-x-6',
+          'hidden items-center gap-1 rounded-full border border-white/[0.45] bg-white/[0.72] px-2 py-1 text-foreground shadow-[0_10px_30px_-18px_rgba(30,41,59,0.55),inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-2xl lg:flex dark:border-white/[0.16] dark:bg-white/[0.14] dark:text-white',
           className
         )}
         {...props}
@@ -107,7 +115,12 @@ export function TopNav({ className, links, ...props }: TopNavProps) {
               href={href}
               target='_blank'
               rel='noopener noreferrer'
-              className={`hover:text-primary text-sm font-medium transition-colors ${isActive ? '' : 'text-muted-foreground'}`}
+              aria-disabled={disabled}
+              tabIndex={disabled ? -1 : undefined}
+              className={cn(
+                'text-muted-foreground hover:text-foreground rounded-full px-3 py-1.5 text-[13px] font-medium transition-colors duration-200 hover:bg-black/[0.06] dark:text-white/[0.72] dark:hover:bg-white/10 dark:hover:text-white',
+                disabled && 'pointer-events-none opacity-50'
+              )}
             >
               {title}
             </a>
@@ -116,7 +129,13 @@ export function TopNav({ className, links, ...props }: TopNavProps) {
               key={`${title}-${href}`}
               to={href}
               disabled={disabled}
-              className={`hover:text-primary text-sm font-medium transition-colors ${isActive ? '' : 'text-muted-foreground'}`}
+              className={cn(
+                'rounded-full px-3 py-1.5 text-[13px] font-medium transition-colors duration-200',
+                isActive
+                  ? 'bg-black/[0.08] text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.58)] dark:bg-white/[0.14] dark:text-white'
+                  : 'text-muted-foreground hover:bg-black/[0.06] hover:text-foreground dark:text-white/[0.72] dark:hover:bg-white/10 dark:hover:text-white',
+                disabled && 'pointer-events-none opacity-50'
+              )}
             >
               {title}
             </Link>

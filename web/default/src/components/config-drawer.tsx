@@ -281,6 +281,9 @@ const FONT_OPTIONS: {
   },
 ]
 
+const FONT_PREVIEW_FALLBACK =
+  "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+
 function FontConfig() {
   const { t } = useTranslation()
   const { font, resetFont, setFont } = useFont()
@@ -312,7 +315,10 @@ function FontConfig() {
                 'group-focus-visible:ring-2',
                 'group-hover:ring-primary/60'
               )}
-              style={{ fontFamily: option.family }}
+              style={{
+                fontFamily:
+                  option.value === font ? option.family : FONT_PREVIEW_FALLBACK,
+              }}
             >
               <div className='min-w-0'>
                 <div className='text-foreground truncate text-base font-semibold leading-none'>

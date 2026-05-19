@@ -20,13 +20,18 @@ For commercial licensing, please contact support@quantumnous.com
 
 @font-face {
   font-family: 'Aigei Cheese';
-  src: url('../assets/fonts/aigei-cheese.ttf') format('truetype');
+  src:
+    url('../assets/fonts/aigei-cheese.woff2') format('woff2'),
+    url('../assets/fonts/aigei-cheese.ttf') format('truetype');
   font-display: swap;
 }
 
 @font-face {
   font-family: 'Aa偷吃可爱长大的';
-  src: url('../assets/fonts/aa-touchi-keai-changdade.ttf') format('truetype');
+  src:
+    url('../assets/fonts/aa-touchi-keai-changdade-subset.woff2')
+      format('woff2'),
+    url('../assets/fonts/aa-touchi-keai-changdade.ttf') format('truetype');
   font-display: swap;
 }
 

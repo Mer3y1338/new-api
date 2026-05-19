@@ -24,6 +24,7 @@ import { cn } from '@/lib/utils'
 import { useNotifications } from '@/hooks/use-notifications'
 import { useSystemConfig } from '@/hooks/use-system-config'
 import { useTopNavLinks } from '@/hooks/use-top-nav-links'
+import { LuoyinWordmark } from '@/custom/luoyin/brand'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -41,7 +42,6 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { defaultTopNavLinks } from '../config/top-nav.config'
 import type { TopNavLink } from '../types'
-import { HeaderLogo } from './header-logo'
 
 const AUTH_PROMPT_SECONDS = 5
 
@@ -90,9 +90,7 @@ export function PublicHeader(props: PublicHeaderProps) {
   const { auth } = useAuthStore()
   const {
     systemName,
-    logo: systemLogo,
     loading,
-    logoLoaded,
   } = useSystemConfig()
   const dynamicLinks = useTopNavLinks()
   const notifications = useNotifications()
@@ -200,32 +198,19 @@ export function PublicHeader(props: PublicHeaderProps) {
               aria-label={displaySiteName}
               className={cn(
                 'group flex shrink-0 items-center rounded-full border border-white/[0.45] bg-white/[0.72] shadow-[0_10px_30px_-18px_rgba(30,41,59,0.55),inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-2xl transition-all duration-300 hover:bg-white/[0.82] dark:border-white/[0.16] dark:bg-white/[0.14]',
-                customLogo ? 'px-3 py-1.5' : 'gap-2.5 px-4 py-2'
+                'px-3 py-1.5'
               )}
             >
               {loading ? (
-                <>
-                  <Skeleton className='size-7 rounded-lg' />
-                  <Skeleton className='h-4 w-16' />
-                </>
+                <Skeleton className='h-8 w-32 rounded-full md:w-36' />
               ) : customLogo ? (
                 <div className='flex h-8 w-32 shrink-0 items-center justify-center transition-all duration-300 group-hover:scale-[1.03] md:w-36'>
                   {customLogo}
                 </div>
               ) : (
-                <>
-                  <div className='flex size-7 shrink-0 items-center justify-center transition-all duration-300 group-hover:scale-105'>
-                    <HeaderLogo
-                      src={systemLogo}
-                      loading={loading}
-                      logoLoaded={logoLoaded}
-                      className='size-full rounded-lg object-contain'
-                    />
-                  </div>
-                  <span className='text-sm font-semibold tracking-tight'>
-                    {displaySiteName}
-                  </span>
-                </>
+                <div className='flex h-8 w-32 shrink-0 items-center justify-center transition-all duration-300 group-hover:scale-[1.03] md:w-36'>
+                  <LuoyinWordmark />
+                </div>
               )}
             </Link>
 

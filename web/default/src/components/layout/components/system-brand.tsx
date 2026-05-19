@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { useStatus } from '@/hooks/use-status'
 import { useSystemConfig } from '@/hooks/use-system-config'
+import { LuoyinWordmark } from '@/custom/luoyin/brand'
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -60,18 +61,13 @@ export function SystemBrand(props: SystemBrandProps) {
         to='/'
         aria-label={t('Go to home')}
         className={cn(
-          'text-foreground inline-flex h-7 items-center gap-1.5 rounded-md px-1.5 text-sm font-medium transition-colors outline-none select-none',
+          'text-foreground inline-flex h-9 items-center rounded-full border border-white/[0.45] bg-white/[0.72] px-3 text-sm font-medium shadow-[0_10px_30px_-18px_rgba(30,41,59,0.55),inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-2xl transition-colors outline-none select-none dark:border-white/[0.16] dark:bg-white/[0.14]',
           'hover:bg-accent focus-visible:ring-ring/40 focus-visible:ring-2'
         )}
       >
-        <div className='flex size-5 items-center justify-center overflow-hidden rounded-md'>
-          <img
-            src={logo}
-            alt={t('Logo')}
-            className='size-full rounded-md object-cover'
-          />
+        <div className='flex h-7 w-28 items-center justify-center md:w-32'>
+          <LuoyinWordmark />
         </div>
-        <span className='max-w-[12rem] truncate'>{name}</span>
       </Link>
     )
   }
