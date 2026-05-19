@@ -906,6 +906,7 @@ jobs:
           RISK_LABEL="${{ steps.changes.outputs.risk_label }}"
           AI_STATUS="${{ steps.ai_review.outputs.status }}"
           BODY_FILE="$(mktemp)"
+          export BRANCH
 
           python3 - <<'PY'
           from pathlib import Path
@@ -974,14 +975,35 @@ jobs:
           PY
 
           cp upstream-review/pr-body.md "$BODY_FILE"
+          export BODY_FILE
 
-          EXISTING_PR="$(gh pr list --state open --head "$BRANCH" --json number --jq '.[0].number // empty')"
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          payload = {
+              "title": f"Sync upstream/{os.environ['TARGET_BRANCH']}",
+              "head": f"{os.environ['GITHUB_REPOSITORY_OWNER']}:{os.environ['BRANCH']}",
+              "base": os.environ["TARGET_BRANCH"],
+              "body": Path(os.environ["BODY_FILE"]).read_text(encoding="utf-8", errors="replace"),
+              "maintainer_can_modify": True,
+          }
+
+          Path("upstream-review/pr-create-payload.json").write_text(
+              json.dumps(payload, ensure_ascii=False),
+              encoding="utf-8",
+          )
+          PY
+
+          HEAD_REF="${GITHUB_REPOSITORY_OWNER}:${BRANCH}"
+          EXISTING_PR="$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --head "$HEAD_REF" --json number --jq '.[0].number // empty')"
 
           add_label() {
             local pr_number="$1"
             local label="$2"
 
-            gh pr edit "$pr_number" --add-label "$label" \
+            gh pr edit "$pr_number" --repo "$GITHUB_REPOSITORY" --add-label "$label" \
               || echo "::warning::Could not add label '${label}' to PR #${pr_number}."
           }
 
@@ -989,11 +1011,12 @@ jobs:
             local pr_number="$1"
             local label="$2"
 
-            gh pr edit "$pr_number" --remove-label "$label" >/dev/null 2>&1 || true
+            gh pr edit "$pr_number" --repo "$GITHUB_REPOSITORY" --remove-label "$label" >/dev/null 2>&1 || true
           }
 
           if [ -n "$EXISTING_PR" ]; then
             gh pr edit "$EXISTING_PR" \
+              --repo "$GITHUB_REPOSITORY" \
               --title "Sync upstream/${TARGET_BRANCH}" \
               --body-file "$BODY_FILE"
 
@@ -1019,18 +1042,71 @@ jobs:
 
             set +e
             PR_URL="$(gh pr create \
+              --repo "$GITHUB_REPOSITORY" \
               --base "$TARGET_BRANCH" \
-              --head "$BRANCH" \
+              --head "$HEAD_REF" \
               --title "Sync upstream/${TARGET_BRANCH}" \
               --body-file "$BODY_FILE" 2> upstream-review/pr-create-error.txt)"
             CREATE_CODE=$?
             set -e
 
             if [ "$CREATE_CODE" -ne 0 ]; then
+              echo "::warning::gh pr create failed, retrying with REST API."
+
+              set +e
+              gh api \
+                --method POST \
+                "repos/${GITHUB_REPOSITORY}/pulls" \
+                --input upstream-review/pr-create-payload.json \
+                > upstream-review/pr-create-rest-response.json \
+                2> upstream-review/pr-create-rest-error.txt
+              REST_CREATE_CODE=$?
+              set -e
+
+              if [ "$REST_CREATE_CODE" -eq 0 ]; then
+                PR_NUMBER="$(
+                  python3 -c 'import json; print(json.load(open("upstream-review/pr-create-rest-response.json", encoding="utf-8"))["number"])'
+                )"
+              else
+                {
+                  echo "## Pull Request creation failed"
+                  echo
+                  echo "同步分支已经推送成功，但 GitHub CLI 没有权限创建 PR。"
+                  echo
+                  echo "- Branch: \`${BRANCH}\`"
+                  echo "- Base: \`${TARGET_BRANCH}\`"
+                  echo "- Body file: \`upstream-review/pr-body.md\`"
+                  echo
+                  echo "### GraphQL create error"
+                  echo '```txt'
+                  cat upstream-review/pr-create-error.txt
+                  echo '```'
+                  echo
+                  echo "### REST create error"
+                  echo '```txt'
+                  cat upstream-review/pr-create-rest-error.txt
+                  echo '```'
+                  echo
+                  echo "### 还需要检查"
+                  echo
+                  echo "- 如果用 fine-grained PAT：确认 token owner 对仓库有 write/admin 权限，Repository access 选中了当前仓库，Pull requests 是 Read and write。"
+                  echo "- 如果仓库在组织下：确认 PAT 已通过组织 SSO 授权，且组织没有禁止 PAT 创建 PR。"
+                  echo "- 如果不用 PAT：删除 \`UPSTREAM_SYNC_TOKEN\` 后重新跑，让 workflow 使用 \`GITHUB_TOKEN\`。"
+                  echo "- 如果分支已推送成功，也可以直接从 \`${BRANCH}\` 手动打开 PR，AI 审查报告在 artifact 里。"
+                } >> "$GITHUB_STEP_SUMMARY"
+
+                echo "::error::Failed to create PR with both gh pr create and REST API."
+                exit 1
+              fi
+            else
+              PR_NUMBER="$(gh pr view "$PR_URL" --repo "$GITHUB_REPOSITORY" --json number --jq '.number')"
+            fi
+
+            if [ -z "${PR_NUMBER:-}" ]; then
               {
                 echo "## Pull Request creation failed"
                 echo
-                echo "同步分支已经推送成功，但 GitHub CLI 没有权限创建 PR。"
+                echo "同步分支已经推送成功，但没有拿到 PR 编号。"
                 echo
                 echo "- Branch: \`${BRANCH}\`"
                 echo "- Base: \`${TARGET_BRANCH}\`"
@@ -1040,22 +1116,11 @@ jobs:
                 echo '```txt'
                 cat upstream-review/pr-create-error.txt
                 echo '```'
-                echo
-                echo "### Fix"
-                echo
-                echo "任选一种："
-                echo
-                echo "1. 在仓库 Settings -> Actions -> General 中启用 Read and write permissions，并允许 GitHub Actions 创建/批准 PR。"
-                echo "2. 创建一个有 repo / pull request 权限的 PAT，保存为仓库 secret：\`UPSTREAM_SYNC_TOKEN\`。"
-                echo
-                echo "AI 审查报告和 PR 正文已经保存在 artifact 里，没有丢。"
               } >> "$GITHUB_STEP_SUMMARY"
 
-              echo "::error::Failed to create PR. Configure workflow permissions or secret UPSTREAM_SYNC_TOKEN."
+              echo "::error::PR may have been created, but PR number could not be resolved."
               exit 1
             fi
-
-            PR_NUMBER="$(gh pr view "$PR_URL" --json number --jq '.number')"
           fi
 
           add_label "$PR_NUMBER" "upstream-sync"
