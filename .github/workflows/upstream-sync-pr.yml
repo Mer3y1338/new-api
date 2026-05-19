@@ -69,13 +69,27 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh label create "upstream-sync" --color "0969da" --description "Sync updates from upstream" || true
-          gh label create "merge-conflict" --color "d1242f" --description "Upstream merge conflict" || true
-          gh label create "ai-reviewed" --color "8250df" --description "Reviewed by AI" || true
-          gh label create "ai-review-failed" --color "bf8700" --description "AI review was skipped or failed" || true
-          gh label create "risk-low" --color "2da44e" --description "Low risk upstream sync" || true
-          gh label create "risk-medium" --color "bf8700" --description "Medium risk upstream sync" || true
-          gh label create "risk-high" --color "d1242f" --description "High risk upstream sync" || true
+          ensure_label() {
+            local name="$1"
+            local color="$2"
+            local description="$3"
+
+            if gh label view "$name" >/dev/null 2>&1; then
+              gh label edit "$name" --color "$color" --description "$description" \
+                || echo "::warning::Failed to update label: ${name}"
+            else
+              gh label create "$name" --color "$color" --description "$description" \
+                || echo "::warning::Failed to create label: ${name}"
+            fi
+          }
+
+          ensure_label "upstream-sync" "0969da" "Sync updates from upstream"
+          ensure_label "merge-conflict" "d1242f" "Upstream merge conflict"
+          ensure_label "ai-reviewed" "8250df" "Reviewed by AI"
+          ensure_label "ai-review-failed" "bf8700" "AI review was skipped or failed"
+          ensure_label "risk-low" "2da44e" "Low risk upstream sync"
+          ensure_label "risk-medium" "bf8700" "Medium risk upstream sync"
+          ensure_label "risk-high" "d1242f" "High risk upstream sync"
 
       - name: Add and fetch upstream
         run: |
@@ -963,45 +977,58 @@ jobs:
 
           EXISTING_PR="$(gh pr list --state open --head "$BRANCH" --json number --jq '.[0].number // empty')"
 
+          add_label() {
+            local pr_number="$1"
+            local label="$2"
+
+            gh pr edit "$pr_number" --add-label "$label" \
+              || echo "::warning::Could not add label '${label}' to PR #${pr_number}."
+          }
+
+          remove_label() {
+            local pr_number="$1"
+            local label="$2"
+
+            gh pr edit "$pr_number" --remove-label "$label" >/dev/null 2>&1 || true
+          }
+
           if [ -n "$EXISTING_PR" ]; then
             gh pr edit "$EXISTING_PR" \
               --title "Sync upstream/${TARGET_BRANCH}" \
-              --body-file "$BODY_FILE" \
-              --add-label "upstream-sync" \
-              --add-label "$RISK_LABEL"
+              --body-file "$BODY_FILE"
 
-            gh pr edit "$EXISTING_PR" --remove-label "risk-low" || true
-            gh pr edit "$EXISTING_PR" --remove-label "risk-medium" || true
-            gh pr edit "$EXISTING_PR" --remove-label "risk-high" || true
-            gh pr edit "$EXISTING_PR" --remove-label "ai-reviewed" || true
-            gh pr edit "$EXISTING_PR" --remove-label "ai-review-failed" || true
-            gh pr edit "$EXISTING_PR" --add-label "$RISK_LABEL"
+            remove_label "$EXISTING_PR" "risk-low"
+            remove_label "$EXISTING_PR" "risk-medium"
+            remove_label "$EXISTING_PR" "risk-high"
+            remove_label "$EXISTING_PR" "ai-reviewed"
+            remove_label "$EXISTING_PR" "ai-review-failed"
 
             if [ "$AI_STATUS" = "ok" ]; then
-              gh pr edit "$EXISTING_PR" --add-label "ai-reviewed"
+              AI_LABEL="ai-reviewed"
             else
-              gh pr edit "$EXISTING_PR" --add-label "ai-review-failed"
+              AI_LABEL="ai-review-failed"
             fi
 
             PR_NUMBER="$EXISTING_PR"
           else
-            LABEL_ARGS=(--label "upstream-sync" --label "$RISK_LABEL")
-
             if [ "$AI_STATUS" = "ok" ]; then
-              LABEL_ARGS+=(--label "ai-reviewed")
+              AI_LABEL="ai-reviewed"
             else
-              LABEL_ARGS+=(--label "ai-review-failed")
+              AI_LABEL="ai-review-failed"
             fi
 
             PR_URL="$(gh pr create \
               --base "$TARGET_BRANCH" \
               --head "$BRANCH" \
               --title "Sync upstream/${TARGET_BRANCH}" \
-              --body-file "$BODY_FILE" \
-              "${LABEL_ARGS[@]}")"
+              --body-file "$BODY_FILE")"
 
             PR_NUMBER="$(gh pr view "$PR_URL" --json number --jq '.number')"
           fi
+
+          add_label "$PR_NUMBER" "upstream-sync"
+          add_label "$PR_NUMBER" "$RISK_LABEL"
+          add_label "$PR_NUMBER" "$AI_LABEL"
 
           echo "number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
 
