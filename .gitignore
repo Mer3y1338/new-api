@@ -40,5 +40,7 @@ skills-lock.json
 .playwright-mcp/
 luoyin-*.png
 ChatGPT Image 2026年5月18日 22_14_59.png
-lll.ttf
+
+# Local font source files copied into tracked frontend assets when needed
+/lll.ttf
 日系可爱奶酪体_爱给网_aigei_com.ttf

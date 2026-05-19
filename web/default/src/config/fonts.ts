@@ -35,13 +35,13 @@ For commercial licensing, please contact support@quantumnous.com
  *      --font-roboto: 'Roboto', var(--font-sans);
  *   }
  */
-export const fonts = ['aigei-cheese', 'inter', 'manrope', 'system'] as const
+export const fonts = ['lll', 'aigei-cheese', 'inter', 'manrope', 'system'] as const
 
 export type Font = (typeof fonts)[number]
 
 export const fontConfig = {
-  defaultFont: 'aigei-cheese',
-  respectSavedFontPreference: false,
+  defaultFont: 'lll',
+  respectSavedFontPreference: true,
 } as const satisfies {
   defaultFont: Font
   respectSavedFontPreference: boolean

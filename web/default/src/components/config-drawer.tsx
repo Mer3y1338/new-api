@@ -31,6 +31,7 @@ import { IconSidebarSidebar } from '@/assets/custom/icon-sidebar-sidebar'
 import { IconThemeDark } from '@/assets/custom/icon-theme-dark'
 import { IconThemeLight } from '@/assets/custom/icon-theme-light'
 import { IconThemeSystem } from '@/assets/custom/icon-theme-system'
+import { type Font, fontConfig } from '@/config/fonts'
 import {
   type ContentLayout,
   THEME_PRESETS,
@@ -100,6 +101,7 @@ export function ConfigDrawer() {
         </SheetHeader>
         <div className='space-y-6 overflow-y-auto px-4'>
           <ThemeConfig />
+          <FontConfig />
           <PresetConfig />
           <RadiusConfig />
           <ScaleConfig />
@@ -232,6 +234,109 @@ function ThemeConfig() {
       <div id='theme-description' className='sr-only'>
         {t('Choose between system preference, light mode, or dark mode')}
       </div>
+    </div>
+  )
+}
+
+const FONT_OPTIONS: {
+  value: Font
+  labelKey: string
+  sample: string
+  family: string
+}[] = [
+  {
+    value: 'lll',
+    labelKey: 'font.lll',
+    sample: 'Aa \u5b57',
+    family:
+      "'Aa偷吃可爱长大的', 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+  },
+  {
+    value: 'aigei-cheese',
+    labelKey: 'font.aigei-cheese',
+    sample: 'Aa \u5b57',
+    family:
+      "'Aigei Cheese', 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+  },
+  {
+    value: 'inter',
+    labelKey: 'font.inter',
+    sample: 'Aa',
+    family:
+      "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
+  },
+  {
+    value: 'manrope',
+    labelKey: 'font.manrope',
+    sample: 'Aa',
+    family:
+      "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
+  },
+  {
+    value: 'system',
+    labelKey: 'font.system',
+    sample: 'Aa',
+    family:
+      "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+  },
+]
+
+function FontConfig() {
+  const { t } = useTranslation()
+  const { font, resetFont, setFont } = useFont()
+
+  return (
+    <div>
+      <SectionTitle
+        title={t('Font')}
+        showReset={font !== fontConfig.defaultFont}
+        onReset={resetFont}
+      />
+      <Radio
+        value={font}
+        onValueChange={(v) => setFont(v as Font)}
+        className='grid w-full grid-cols-2 gap-3'
+        aria-label={t('Select interface font')}
+      >
+        {FONT_OPTIONS.map((option) => (
+          <Item
+            key={option.value}
+            value={option.value}
+            className='group flex min-w-0 flex-col items-stretch outline-none'
+            aria-label={t(option.labelKey)}
+          >
+            <div
+              className={cn(
+                'ring-border relative flex h-14 items-center justify-between overflow-hidden rounded-md px-3 ring-[1px] transition',
+                'group-data-checked:ring-primary group-data-checked:shadow-md',
+                'group-focus-visible:ring-2',
+                'group-hover:ring-primary/60'
+              )}
+              style={{ fontFamily: option.family }}
+            >
+              <div className='min-w-0'>
+                <div className='text-foreground truncate text-base font-semibold leading-none'>
+                  {option.sample}
+                </div>
+                <div className='text-muted-foreground mt-1 truncate text-[11px]'>
+                  {t(option.labelKey)}
+                </div>
+              </div>
+              <span
+                aria-hidden='true'
+                className='bg-muted-foreground/25 ml-3 h-7 w-px shrink-0'
+              />
+              <CircleCheck
+                className={cn(
+                  'fill-primary absolute top-0 right-0 z-10 size-5 translate-x-1/2 -translate-y-1/2 stroke-white',
+                  'group-data-unchecked:hidden'
+                )}
+                aria-hidden='true'
+              />
+            </div>
+          </Item>
+        ))}
+      </Radio>
     </div>
   )
 }
