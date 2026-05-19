@@ -71,7 +71,7 @@ export function HeroTerminalDemo() {
           'flex min-h-11 items-center gap-1 rounded-full border border-white/[0.45] bg-white/[0.72] px-2 py-1 text-foreground shadow-[0_10px_30px_-18px_rgba(30,41,59,0.55),inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-2xl transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] dark:border-white/[0.16] dark:bg-white/[0.14] dark:text-white'
         )}
       >
-        <div className='flex min-w-0 flex-1 items-baseline gap-1.5 rounded-full px-3 py-1.5'>
+        <div className='flex min-w-0 flex-1 items-baseline gap-1.5 rounded-full px-3 py-1.5 transition-colors duration-200 hover:bg-black/[0.06] dark:hover:bg-white/10'>
           <span className='shrink-0 font-mono text-[13px] font-medium text-muted-foreground dark:text-white/[0.72]'>
             https://
           </span>
@@ -81,7 +81,7 @@ export function HeroTerminalDemo() {
         </div>
         <span
           className={cn(
-            'min-w-0 max-w-[48%] truncate rounded-full bg-black/[0.08] px-3 py-1.5 text-right font-mono text-[13px] font-semibold text-sky-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.58)] transition-all duration-200 sm:max-w-[54%] dark:bg-white/[0.14] dark:text-sky-300',
+            'min-w-0 max-w-[48%] truncate rounded-full bg-black/[0.08] px-3 py-1.5 text-right font-mono text-[13px] font-semibold text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.58)] transition-all duration-200 sm:max-w-[54%] dark:bg-white/[0.14] dark:text-white',
             transitioning
               ? 'translate-y-1 opacity-0 blur-[1px]'
               : 'translate-y-0 opacity-100 blur-0'

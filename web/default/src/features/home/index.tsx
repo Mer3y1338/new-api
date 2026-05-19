@@ -76,8 +76,12 @@ export function Home() {
       logo={<LuoyinWordmark />}
     >
       <Hero isAuthenticated={isAuthenticated} />
-      <div className="absolute bottom-0 left-0 w-full z-20 pb-4">
-        <Footer name={LUOYIN_BRAND_NAME} className="bg-transparent border-transparent pt-0 mt-0" />
+      <div className='absolute bottom-0 left-0 z-20 w-full translate-y-2 pb-1 md:translate-y-3 md:pb-2'>
+        <Footer
+          name={LUOYIN_BRAND_NAME}
+          compact
+          className='bg-transparent pt-0 mt-0'
+        />
       </div>
     </PublicLayout>
   )
