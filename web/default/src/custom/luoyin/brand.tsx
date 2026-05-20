@@ -23,25 +23,11 @@ export const LUOYIN_TAGLINE = '洛水之畔，万模同声。'
 export const LUOYIN_MICRO_TAGLINE = '星が落ちる前に、声を見つけよう。'
 export const LUOYIN_WORDMARK_SRC = '/wordmark-luoyin.svg'
 
-type LuoyinMarkProps = {
+type LuoyinWordmarkProps = {
   className?: string
 }
 
-export function LuoyinMark({ className }: LuoyinMarkProps) {
-  return (
-    <span
-      aria-hidden='true'
-      className={cn('luoyin-mark', className)}
-    >
-      <span className='luoyin-mark__halo' />
-      <span className='luoyin-mark__river' />
-      <span className='luoyin-mark__star' />
-      <span className='luoyin-mark__shine' />
-    </span>
-  )
-}
-
-export function LuoyinWordmark({ className }: LuoyinMarkProps) {
+export function LuoyinWordmark({ className }: LuoyinWordmarkProps) {
   return (
     <img
       src={LUOYIN_WORDMARK_SRC}
