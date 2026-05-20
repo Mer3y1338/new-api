@@ -18,7 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { useMemo } from 'react'
 import { Link } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { useSystemConfig } from '@/hooks/use-system-config'
 
@@ -172,26 +172,51 @@ export function Footer(props: FooterProps) {
   if (props.compact) {
     return (
       <footer
-        className={cn('relative z-10 px-4 pb-3 md:pb-4', props.className)}
+        className={cn('relative z-10 px-4 pb-4 md:pb-5', props.className)}
       >
-        <div className='mx-auto flex min-h-11 w-fit max-w-[calc(100vw-2rem)] items-center gap-1 rounded-full border border-white/[0.45] bg-white/[0.72] px-2 py-1 text-foreground shadow-[0_10px_30px_-18px_rgba(30,41,59,0.55),inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-2xl transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] dark:border-white/[0.16] dark:bg-white/[0.14] dark:text-white'>
-          <Link
-            to='/'
-            className='flex min-w-0 items-center gap-2 rounded-full px-3 py-1.5 transition-colors duration-200 hover:bg-black/[0.06] dark:hover:bg-white/10'
-          >
-            <img
-              src={displayLogo}
-              alt={displayName}
-              className='size-5 shrink-0 rounded-md object-contain'
-            />
+        <div className='mx-auto flex min-h-14 w-full max-w-3xl flex-col items-center justify-between gap-2 rounded-full border border-white/[0.45] bg-white/[0.72] px-5 py-2.5 text-foreground shadow-[0_10px_30px_-18px_rgba(30,41,59,0.55),inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-2xl transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] sm:min-h-12 sm:flex-row sm:gap-4 sm:px-6 dark:border-white/[0.16] dark:bg-white/[0.14] dark:text-white'>
+          <div className='flex min-w-0 items-center gap-2 text-center sm:text-left'>
             <span className='truncate text-[13px] font-semibold tracking-tight'>
               {displayName}
             </span>
-          </Link>
-          <div className='h-4 w-px shrink-0 bg-black/10 dark:bg-white/[0.16]' />
-          <p className='truncate px-3 py-1.5 text-[13px] text-muted-foreground dark:text-white/[0.72]'>
-            &copy; {currentYear}. {props.copyright ?? t('footer.defaultCopyright')}
-          </p>
+            <span className='text-muted-foreground text-[13px] dark:text-white/[0.72]'>
+              &copy; {currentYear}.{' '}
+              {props.copyright ?? t('footer.defaultCopyright')}
+            </span>
+          </div>
+
+          <div className='flex min-w-0 flex-col items-center leading-tight sm:items-end'>
+            <p className='text-[13px] text-slate-700/82 dark:text-white/72'>
+              <Trans
+                i18nKey='home.footer.developedDesigned'
+                components={{
+                  newapi: (
+                    <a
+                      href='https://www.newapi.ai/'
+                      target='_blank'
+                      rel='noopener noreferrer'
+                      className='mx-0.5 font-semibold text-slate-950 transition-colors hover:text-black dark:text-white/88 dark:hover:text-white'
+                    />
+                  ),
+                }}
+              />
+            </p>
+            <p className='text-muted-foreground mt-0.5 text-[11px] dark:text-white/[0.58]'>
+              <Trans
+                i18nKey='home.footer.customizedBy'
+                components={{
+                  repo: (
+                    <a
+                      href='https://github.com/CharyeahOwO/new-api'
+                      target='_blank'
+                      rel='noopener noreferrer'
+                      className='transition-colors hover:text-foreground dark:hover:text-white'
+                    />
+                  ),
+                }}
+              />
+            </p>
+          </div>
         </div>
       </footer>
     )

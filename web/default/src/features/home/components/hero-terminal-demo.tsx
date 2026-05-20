@@ -18,6 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { useEffect, useRef, useState } from 'react'
 import { Copy } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 
 const API_BASE_URL = 'https://api.nyaovo.com'
@@ -32,6 +33,7 @@ const CYCLE_INTERVAL = 2600
 const TRANSITION_MS = 180
 
 export function HeroTerminalDemo() {
+  const { t } = useTranslation()
   const [activeIndex, setActiveIndex] = useState(0)
   const [transitioning, setTransitioning] = useState(false)
   const intervalRef = useRef<ReturnType<typeof setInterval>>(undefined)
@@ -91,7 +93,7 @@ export function HeroTerminalDemo() {
         <button
           type='button'
           onClick={handleCopy}
-          aria-label='Copy API URL'
+          aria-label={t('Copy API URL')}
           className={cn(
             'grid size-7 shrink-0 place-items-center rounded-full transition-colors duration-200 sm:size-8',
             'text-muted-foreground hover:bg-black/[0.06] hover:text-foreground',

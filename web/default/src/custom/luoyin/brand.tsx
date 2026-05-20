@@ -21,7 +21,7 @@ import { cn } from '@/lib/utils'
 export const LUOYIN_BRAND_NAME = '洛音云枢'
 export const LUOYIN_TAGLINE = '洛水之畔，万模同声。'
 export const LUOYIN_MICRO_TAGLINE = '星が落ちる前に、声を見つけよう。'
-export const LUOYIN_WORDMARK_SRC = '/wordmark-luoyin.png'
+export const LUOYIN_WORDMARK_SRC = '/wordmark-luoyin.svg'
 
 type LuoyinMarkProps = {
   className?: string
