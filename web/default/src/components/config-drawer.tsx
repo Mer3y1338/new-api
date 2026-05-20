@@ -252,13 +252,6 @@ const FONT_OPTIONS: {
       "'Aa偷吃可爱长大的', 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
   },
   {
-    value: 'aigei-cheese',
-    labelKey: 'font.aigei-cheese',
-    sample: 'Aa \u5b57',
-    family:
-      "'Aigei Cheese', 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-  },
-  {
     value: 'inter',
     labelKey: 'font.inter',
     sample: 'Aa',

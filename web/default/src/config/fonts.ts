@@ -35,7 +35,7 @@ For commercial licensing, please contact support@quantumnous.com
  *      --font-roboto: 'Roboto', var(--font-sans);
  *   }
  */
-export const fonts = ['lll', 'aigei-cheese', 'inter', 'manrope', 'system'] as const
+export const fonts = ['lll', 'inter', 'manrope', 'system'] as const
 
 export type Font = (typeof fonts)[number]
 
