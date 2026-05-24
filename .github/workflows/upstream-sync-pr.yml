@@ -347,6 +347,7 @@ jobs:
 
           if [ "$CODE" -ne 0 ]; then
             echo "conflict=true" >> "$GITHUB_OUTPUT"
+            echo "merge_conflict=true" >> "$GITHUB_OUTPUT"
 
             git diff --name-only --diff-filter=U > upstream-review/conflict-files.txt || true
 
@@ -354,18 +355,26 @@ jobs:
               echo "(No unmerged files were reported by git diff --diff-filter=U.)" > upstream-review/conflict-files.txt
             fi
 
+            CONFLICT_COUNT="$(grep -cv '^$' upstream-review/conflict-files.txt || true)"
+            echo "conflict_count=${CONFLICT_COUNT}" >> "$GITHUB_OUTPUT"
+
+            if [ "$CONFLICT_COUNT" -gt 20 ]; then
+              echo "repair_abandoned=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "repair_abandoned=false" >> "$GITHUB_OUTPUT"
+            fi
+
             {
               echo "## Merge conflict"
               echo
-              echo "合并 upstream/${TARGET_BRANCH} 时出现冲突，未创建同步 PR。"
+              echo "合并 upstream/${TARGET_BRANCH} 时出现冲突，已保留冲突状态供自动修复。"
               echo
-              echo "### Conflict files"
+              echo "### Conflict files (${CONFLICT_COUNT})"
               echo '```txt'
               cat upstream-review/conflict-files.txt
               echo '```'
             } >> "$GITHUB_STEP_SUMMARY"
 
-            git merge --abort || true
             exit 0
           fi
 
@@ -373,9 +382,53 @@ jobs:
           git diff --stat "origin/${TARGET_BRANCH}..HEAD" > upstream-review/merge-stat.txt
 
           echo "conflict=false" >> "$GITHUB_OUTPUT"
+          echo "merge_conflict=false" >> "$GITHUB_OUTPUT"
+          echo "conflict_count=0" >> "$GITHUB_OUTPUT"
+          echo "repair_abandoned=false" >> "$GITHUB_OUTPUT"
+
+      - name: Repair merge conflicts with Claude Code
+        if: steps.changes.outputs.has_changes == 'true' && steps.merge.outputs.merge_conflict == 'true' && steps.merge.outputs.repair_abandoned != 'true' && env.DRY_RUN != 'true'
+        id: claude_code_repair
+        continue-on-error: true
+        uses: anthropics/claude-code-action@v1
+        env:
+          ANTHROPIC_BASE_URL: ${{ secrets.ANTHROPIC_BASE_URL }}
+          ANTHROPIC_MODEL: ${{ secrets.ANTHROPIC_MODEL }}
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_AUTH_TOKEN }}
+          github_token: ${{ github.token }}
+          prompt: |
+            You are repairing an upstream merge conflict in this GitHub Actions job.
+
+            Requirements:
+            - First inspect the latest commit on this branch, then inspect adjacent code only as needed.
+            - Only resolve files listed by `git diff --name-only --diff-filter=U`.
+            - Do not modify unrelated files.
+            - Remove every conflict marker: `<<<<<<<`, `=======`, `>>>>>>>`.
+            - Preserve both local customization and upstream fixes whenever possible.
+            - Especially preserve the local “洛音云枢” brand, footer/legal links/project attribution, theme customization, and i18n customization.
+            - Do not force push.
+            - Do not change secrets, environment variables, deploy keys, credentials, or release tokens.
+            - Do not perform broad refactors.
+            - After resolving conflicts, run `git diff --check`.
+            - When no unmerged files remain, run `git add` for only the conflicted files and commit with exactly: `chore: resolve upstream merge conflicts`.
+            - Write a concise repair summary to `upstream-review/ai-repair.md`.
+
+            Suggested workflow:
+            1. Run `git status --short` and `git diff --name-only --diff-filter=U`.
+            2. Read only the conflicted files and nearby context needed to resolve them.
+            3. Edit only those conflicted files.
+            4. Verify no conflict markers remain in those files.
+            5. Run `git diff --check`.
+            6. Run `git add` for the conflicted files, then commit.
+            7. Write `upstream-review/ai-repair.md` with what you resolved and any uncertainty.
+          claude_args: |
+            --model ${{ secrets.ANTHROPIC_MODEL }}
+            --max-turns 80
+            --allowedTools "Read,Grep,Glob,Edit,MultiEdit,Write,Bash(git status:*),Bash(git diff:*),Bash(git add:*),Bash(git commit:*),Bash(rg:*),Bash(sed:*),Bash(head:*),Bash(cat:*)"
 
       - name: Create conflict issue
-        if: steps.changes.outputs.has_changes == 'true' && steps.merge.outputs.conflict == 'true' && env.DRY_RUN != 'true'
+        if: steps.changes.outputs.has_changes == 'true' && steps.merge.outputs.merge_conflict == 'true' && steps.merge.outputs.repair_abandoned == 'true' && env.DRY_RUN != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -384,7 +437,7 @@ jobs:
           export TITLE
 
           {
-            echo "自动同步 upstream/${TARGET_BRANCH} 时出现合并冲突。"
+            echo "自动同步 upstream/${TARGET_BRANCH} 时出现合并冲突，冲突文件超过 20 个，已自动放弃 Claude Code 修复。"
             echo
             echo "- Upstream: ${UPSTREAM_URL}"
             echo "- Workflow run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
@@ -417,19 +470,47 @@ jobs:
               --label "upstream-sync,merge-conflict"
           fi
 
-      - name: Stop on conflict
-        if: steps.changes.outputs.has_changes == 'true' && steps.merge.outputs.conflict == 'true' && env.DRY_RUN != 'true'
+      - name: Validate repaired merge conflicts
+        if: steps.changes.outputs.has_changes == 'true' && steps.merge.outputs.merge_conflict == 'true' && steps.merge.outputs.repair_abandoned != 'true' && env.DRY_RUN != 'true'
+        id: repair_validation
         run: |
-          echo "::error::Merge conflict detected. Sync PR was not created."
+          git diff --check
+
+          git diff --name-only --diff-filter=U > upstream-review/remaining-conflicts.txt || true
+
+          if [ -s upstream-review/remaining-conflicts.txt ]; then
+            {
+              echo "## Merge conflict repair failed"
+              echo
+              echo "Claude Code repair completed, but unmerged files remain:"
+              echo
+              echo '```txt'
+              cat upstream-review/remaining-conflicts.txt
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+
+            echo "::error::Merge conflicts remain after Claude Code repair."
+            exit 1
+          fi
+
+          git status --short
+          git diff --name-status "origin/${TARGET_BRANCH}..HEAD" > upstream-review/merge-files.txt
+          git diff --stat "origin/${TARGET_BRANCH}..HEAD" > upstream-review/merge-stat.txt
+          echo "resolved=true" >> "$GITHUB_OUTPUT"
+
+      - name: Stop on conflict
+        if: steps.changes.outputs.has_changes == 'true' && steps.merge.outputs.merge_conflict == 'true' && steps.merge.outputs.repair_abandoned == 'true' && env.DRY_RUN != 'true'
+        run: |
+          echo "::error::Merge conflict detected in more than 20 files. Automatic repair was not attempted."
           exit 1
 
       - name: Push sync branch
-        if: steps.changes.outputs.has_changes == 'true' && steps.merge.outputs.conflict != 'true' && env.DRY_RUN != 'true'
+        if: steps.changes.outputs.has_changes == 'true' && (steps.merge.outputs.merge_conflict != 'true' || steps.repair_validation.outputs.resolved == 'true') && env.DRY_RUN != 'true'
         run: |
           git push --force-with-lease --set-upstream origin "${{ steps.merge.outputs.branch }}"
 
       - name: Build bounded Claude Code review prompt
-        if: steps.changes.outputs.has_changes == 'true' && steps.merge.outputs.conflict != 'true'
+        if: steps.changes.outputs.has_changes == 'true' && (steps.merge.outputs.merge_conflict != 'true' || steps.repair_validation.outputs.resolved == 'true')
         id: review_prompt
         env:
           ANTHROPIC_MODEL: ${{ secrets.ANTHROPIC_MODEL }}
@@ -450,6 +531,7 @@ jobs:
           你的目标：在完整仓库中进行一次“有限自主”的代码审查，然后把最终报告写入 `upstream-review/ai-review.md`。
 
           重要限制，必须遵守：
+          - 优先查看当前分支最新提交，再按需查看相邻代码上下文。
           - 只读审查，不要修改业务代码、配置、依赖、锁文件或 workflow。
           - 优先阅读 changed files；为了确认调用链/影响范围，可以充分查看相关文件。
           - 不要读取 dist/build/vendor/node_modules。
@@ -525,7 +607,7 @@ jobs:
           PY
 
       - name: Generate repo-aware review with Claude Code
-        if: steps.changes.outputs.has_changes == 'true' && steps.merge.outputs.conflict != 'true' && env.SKIP_AI_REVIEW != 'true'
+        if: steps.changes.outputs.has_changes == 'true' && (steps.merge.outputs.merge_conflict != 'true' || steps.repair_validation.outputs.resolved == 'true') && env.SKIP_AI_REVIEW != 'true'
         id: claude_code_review
         continue-on-error: true
         uses: anthropics/claude-code-action@v1
@@ -546,7 +628,7 @@ jobs:
             --disallowedTools "Edit,MultiEdit"
 
       - name: Finalize AI review
-        if: steps.changes.outputs.has_changes == 'true' && steps.merge.outputs.conflict != 'true'
+        if: steps.changes.outputs.has_changes == 'true' && (steps.merge.outputs.merge_conflict != 'true' || steps.repair_validation.outputs.resolved == 'true')
         id: ai_review
         env:
           ANTHROPIC_MODEL: ${{ secrets.ANTHROPIC_MODEL }}
@@ -635,7 +717,7 @@ jobs:
           PY
 
       - name: Create or update PR with AI review in body
-        if: steps.changes.outputs.has_changes == 'true' && steps.merge.outputs.conflict != 'true' && env.DRY_RUN != 'true'
+        if: steps.changes.outputs.has_changes == 'true' && (steps.merge.outputs.merge_conflict != 'true' || steps.repair_validation.outputs.resolved == 'true') && env.DRY_RUN != 'true'
         id: pr
         env:
           GH_TOKEN: ${{ github.token }}
@@ -947,7 +1029,7 @@ jobs:
           retention-days: 14
 
       - name: Finish summary
-        if: steps.changes.outputs.has_changes == 'true' && steps.merge.outputs.conflict != 'true' && env.DRY_RUN != 'true'
+        if: steps.changes.outputs.has_changes == 'true' && (steps.merge.outputs.merge_conflict != 'true' || steps.repair_validation.outputs.resolved == 'true') && env.DRY_RUN != 'true'
         run: |
           {
             echo "## Done"
