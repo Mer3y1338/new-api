@@ -17,8 +17,9 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { Link } from '@tanstack/react-router'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, BookOpen } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { useStatus } from '@/hooks/use-status'
 import { Button } from '@/components/ui/button'
 import {
   LUOYIN_BRAND_NAME,
@@ -34,6 +35,35 @@ interface HeroProps {
 
 export function Hero(props: HeroProps) {
   const { t } = useTranslation()
+  const { status } = useStatus()
+  const docsUrl =
+    (status?.docs_link as string | undefined) || 'https://docs.newapi.pro'
+
+  const renderDocsButton = () => {
+    const isExternal = docsUrl.startsWith('http')
+    if (isExternal) {
+      return (
+        <Button
+          variant='outline'
+          className='group border-border/50 hover:border-border hover:bg-muted/50 inline-flex h-10 items-center gap-1.5 rounded-full px-4 text-sm font-medium'
+          render={<a href={docsUrl} target='_blank' rel='noopener noreferrer' />}
+        >
+          <BookOpen className='text-muted-foreground/80 group-hover:text-foreground size-4 transition-colors duration-200' />
+          <span>{t('Docs')}</span>
+        </Button>
+      )
+    }
+    return (
+      <Button
+        variant='outline'
+        className='group border-border/50 hover:border-border hover:bg-muted/50 inline-flex h-10 items-center gap-1.5 rounded-full px-4 text-sm font-medium'
+        render={<Link to={docsUrl} />}
+      >
+        <BookOpen className='text-muted-foreground/80 group-hover:text-foreground size-4 transition-colors duration-200' />
+        <span>{t('Docs')}</span>
+      </Button>
+    )
+  }
 
   return (
     <section className='luoyin-shell relative z-10 flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 pt-28 pb-28 md:pt-32 md:pb-36'>
@@ -89,17 +119,20 @@ export function Hero(props: HeroProps) {
           {LUOYIN_MICRO_TAGLINE}
         </p>
         <div
-          className='landing-animate-fade-up mt-7 flex items-center gap-3 opacity-0'
+          className='landing-animate-fade-up mt-7 flex flex-wrap items-center justify-center gap-3 opacity-0'
           style={{ animationDelay: '250ms' }}
         >
           {props.isAuthenticated ? (
-            <Button
-              className='group rounded-full shadow-sm transition-shadow hover:shadow-md'
-              render={<Link to='/dashboard' />}
-            >
-              {t('Go to Dashboard')}
-              <ArrowRight className='ml-1 size-3.5 transition-transform duration-200 group-hover:translate-x-0.5' />
-            </Button>
+            <>
+              <Button
+                className='group rounded-full shadow-sm transition-shadow hover:shadow-md'
+                render={<Link to='/dashboard' />}
+              >
+                {t('Go to Dashboard')}
+                <ArrowRight className='ml-1 size-3.5 transition-transform duration-200 group-hover:translate-x-0.5' />
+              </Button>
+              {renderDocsButton()}
+            </>
           ) : (
             <>
               <Button
@@ -116,6 +149,7 @@ export function Hero(props: HeroProps) {
               >
                 {t('View Pricing')}
               </Button>
+              {renderDocsButton()}
             </>
           )}
         </div>

@@ -32,7 +32,11 @@ const API_ENDPOINTS = [
 const CYCLE_INTERVAL = 2600
 const TRANSITION_MS = 180
 
-export function HeroTerminalDemo() {
+interface HeroTerminalDemoProps {
+  className?: string
+}
+
+export function HeroTerminalDemo({ className }: HeroTerminalDemoProps) {
   const { t } = useTranslation()
   const [activeIndex, setActiveIndex] = useState(0)
   const [transitioning, setTransitioning] = useState(false)
@@ -66,7 +70,12 @@ export function HeroTerminalDemo() {
   }
 
   return (
-    <div className='relative left-1/2 mx-auto mt-14 w-[min(calc(100vw-1.5rem),36rem)] -translate-x-1/2 px-0 sm:left-auto sm:w-full sm:max-w-xl sm:translate-x-0 sm:px-1'>
+    <div
+      className={cn(
+        'relative left-1/2 mx-auto mt-14 w-[min(calc(100vw-1.5rem),36rem)] -translate-x-1/2 px-0 sm:left-auto sm:w-full sm:max-w-xl sm:translate-x-0 sm:px-1',
+        className
+      )}
+    >
       <div
         className={cn(
           'flex min-h-10 items-center gap-1 rounded-full border border-white/[0.45] bg-white/[0.72] px-1.5 py-0.5 text-foreground shadow-[0_10px_30px_-18px_rgba(30,41,59,0.55),inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-2xl transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] sm:px-2 dark:border-white/[0.16] dark:bg-white/[0.14] dark:text-white'
