@@ -110,7 +110,7 @@ export function ConfigDrawer() {
           <ThemeConfig />
           <FontConfig />
           <PresetConfig />
-          <FontConfig />
+          <ThemeFontConfig />
           <RadiusConfig />
           <ScaleConfig />
           <SidebarConfig />
@@ -421,7 +421,7 @@ function PresetConfig() {
  * everything else → sans glyphs) without us having to duplicate the
  * preset-default mapping in the UI.
  */
-const FONT_OPTIONS: {
+const THEME_FONT_OPTIONS: {
   value: ThemeFont
   label: string
   // CSS font-family applied to the "Aa" preview. `undefined` = inherit
@@ -433,7 +433,7 @@ const FONT_OPTIONS: {
   { value: 'serif', label: 'Serif', preview: 'var(--font-serif)' },
 ]
 
-function FontConfig() {
+function ThemeFontConfig() {
   const { t } = useTranslation()
   const { defaults, customization, setFont } = useThemeCustomization()
   return (
@@ -449,7 +449,7 @@ function FontConfig() {
         className='grid w-full grid-cols-3 gap-4'
         aria-label={t('Select body font')}
       >
-        {FONT_OPTIONS.map((option) => (
+        {THEME_FONT_OPTIONS.map((option) => (
           <Item
             key={option.value}
             value={option.value}
