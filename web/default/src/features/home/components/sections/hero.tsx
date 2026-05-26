@@ -39,13 +39,18 @@ export function Hero(props: HeroProps) {
   const docsUrl =
     (status?.docs_link as string | undefined) || 'https://docs.newapi.pro'
 
+  const heroButtonClassName =
+    'h-10 rounded-full px-4 text-sm font-medium shadow-sm transition-shadow hover:shadow-md'
+  const heroOutlineButtonClassName =
+    'border-border/50 hover:border-border hover:bg-muted/50 h-10 rounded-full px-4 text-sm font-medium shadow-sm transition-shadow hover:shadow-md'
+
   const renderDocsButton = () => {
     const isExternal = docsUrl.startsWith('http')
     if (isExternal) {
       return (
         <Button
           variant='outline'
-          className='group border-border/50 hover:border-border hover:bg-muted/50 inline-flex h-10 items-center gap-1.5 rounded-full px-4 text-sm font-medium'
+          className={`group inline-flex items-center gap-1.5 ${heroOutlineButtonClassName}`}
           render={<a href={docsUrl} target='_blank' rel='noopener noreferrer' />}
         >
           <BookOpen className='text-muted-foreground/80 group-hover:text-foreground size-4 transition-colors duration-200' />
@@ -56,7 +61,7 @@ export function Hero(props: HeroProps) {
     return (
       <Button
         variant='outline'
-        className='group border-border/50 hover:border-border hover:bg-muted/50 inline-flex h-10 items-center gap-1.5 rounded-full px-4 text-sm font-medium'
+        className={`group inline-flex items-center gap-1.5 ${heroOutlineButtonClassName}`}
         render={<Link to={docsUrl} />}
       >
         <BookOpen className='text-muted-foreground/80 group-hover:text-foreground size-4 transition-colors duration-200' />
@@ -125,7 +130,7 @@ export function Hero(props: HeroProps) {
           {props.isAuthenticated ? (
             <>
               <Button
-                className='group rounded-full shadow-sm transition-shadow hover:shadow-md'
+                className={`group ${heroButtonClassName}`}
                 render={<Link to='/dashboard' />}
               >
                 {t('Go to Dashboard')}
@@ -136,7 +141,7 @@ export function Hero(props: HeroProps) {
           ) : (
             <>
               <Button
-                className='group rounded-full shadow-sm transition-shadow hover:shadow-md'
+                className={`group ${heroButtonClassName}`}
                 render={<Link to='/sign-up' />}
               >
                 {t('Get Started')}
@@ -144,7 +149,7 @@ export function Hero(props: HeroProps) {
               </Button>
               <Button
                 variant='outline'
-                className='border-border/50 hover:border-border hover:bg-muted/50 rounded-full'
+                className={heroOutlineButtonClassName}
                 render={<Link to='/pricing' />}
               >
                 {t('View Pricing')}
