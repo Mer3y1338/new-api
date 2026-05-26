@@ -1,6 +1,7 @@
 package claude
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -376,6 +377,53 @@ func RequestOpenAI2ClaudeMessage(c *gin.Context, textRequest dto.GeneralOpenAIRe
 								Text: common.GetPointer[string](mediaMessage.Text),
 							})
 						}
+					case dto.ContentTypeFile:
+						file := mediaMessage.GetFile()
+						if file == nil || file.FileData == "" {
+							continue
+						}
+						lowerFileName := strings.ToLower(file.FileName)
+						if strings.HasSuffix(lowerFileName, ".txt") || strings.HasSuffix(lowerFileName, ".md") || strings.HasSuffix(lowerFileName, ".json") || strings.HasSuffix(lowerFileName, ".csv") {
+							decoded, err := base64.StdEncoding.DecodeString(file.FileData)
+							if err != nil {
+								return nil, fmt.Errorf("decode text file data failed: %s", err.Error())
+							}
+							claudeMediaMessages = append(claudeMediaMessages, dto.ClaudeMediaMessage{
+								Type: "text",
+								Text: common.GetPointer(string(decoded)),
+							})
+							continue
+						}
+
+						mimeType := ""
+						if strings.HasSuffix(lowerFileName, ".pdf") {
+							mimeType = "application/pdf"
+						}
+						source := types.NewFileSourceFromData(file.FileData, mimeType)
+						base64Data, detectedMimeType, err := service.GetBase64Data(c, source, "formatting file for Claude")
+						if err != nil {
+							return nil, fmt.Errorf("get file data failed: %s", err.Error())
+						}
+						if detectedMimeType != "" {
+							mimeType = detectedMimeType
+						}
+						if mimeType == "" || (!strings.HasPrefix(mimeType, "application/pdf") && !strings.HasPrefix(mimeType, "image/")) {
+							continue
+						}
+						claudeMediaMessage := dto.ClaudeMediaMessage{
+							Source: &dto.ClaudeMessageSource{
+								Type:      "base64",
+								MediaType: mimeType,
+								Data:      base64Data,
+							},
+						}
+						if strings.HasPrefix(mimeType, "application/pdf") {
+							claudeMediaMessage.Type = "document"
+						} else {
+							claudeMediaMessage.Type = "image"
+						}
+						claudeMediaMessages = append(claudeMediaMessages, claudeMediaMessage)
+						continue
 					default:
 						source := mediaMessage.ToFileSource()
 						if source == nil {
@@ -442,10 +490,7 @@ func StreamResponseClaude2OpenAI(claudeResponse *dto.ClaudeResponse) *dto.ChatCo
 	tools := make([]dto.ToolCallResponse, 0)
 	fcIdx := 0
 	if claudeResponse.Index != nil {
-		fcIdx = *claudeResponse.Index - 1
-		if fcIdx < 0 {
-			fcIdx = 0
-		}
+		fcIdx = *claudeResponse.Index
 	}
 	var choice dto.ChatCompletionsStreamResponseChoice
 	if claudeResponse.Type == "message_start" {
