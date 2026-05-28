@@ -31,7 +31,6 @@ import { IconSidebarSidebar } from '@/assets/custom/icon-sidebar-sidebar'
 import { IconThemeDark } from '@/assets/custom/icon-theme-dark'
 import { IconThemeLight } from '@/assets/custom/icon-theme-light'
 import { IconThemeSystem } from '@/assets/custom/icon-theme-system'
-import { type Font, fontConfig } from '@/config/fonts'
 import {
   type ContentLayout,
   THEME_PRESETS,
@@ -42,7 +41,6 @@ import {
 } from '@/lib/theme-customization'
 import { cn } from '@/lib/utils'
 import { useDirection } from '@/context/direction-provider'
-import { useFont } from '@/context/font-provider'
 import { type Collapsible, useLayout } from '@/context/layout-provider'
 import { useThemeCustomization } from '@/context/theme-customization-provider'
 import { useTheme } from '@/context/theme-provider'
@@ -70,7 +68,6 @@ export function ConfigDrawer() {
   const { t } = useTranslation()
   const { setOpen } = useSidebar()
   const { resetDir } = useDirection()
-  const { resetFont } = useFont()
   const { resetTheme } = useTheme()
   const { resetLayout } = useLayout()
   const { resetCustomization } = useThemeCustomization()
@@ -78,7 +75,6 @@ export function ConfigDrawer() {
   const handleReset = () => {
     setOpen(true)
     resetDir()
-    resetFont()
     resetTheme()
     resetLayout()
     resetCustomization()
@@ -108,9 +104,8 @@ export function ConfigDrawer() {
         </SheetHeader>
         <div className={sideDrawerFormClassName()}>
           <ThemeConfig />
-          <FontConfig />
           <PresetConfig />
-          <ThemeFontConfig />
+          <FontConfig />
           <RadiusConfig />
           <ScaleConfig />
           <SidebarConfig />
@@ -246,108 +241,6 @@ function ThemeConfig() {
   )
 }
 
-const FONT_OPTIONS: {
-  value: Font
-  labelKey: string
-  sample: string
-  family: string
-}[] = [
-  {
-    value: 'lll',
-    labelKey: 'font.lll',
-    sample: 'Aa \u5b57',
-    family:
-      "'Aa偷吃可爱长大的', 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-  },
-  {
-    value: 'inter',
-    labelKey: 'font.inter',
-    sample: 'Aa',
-    family:
-      "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
-  },
-  {
-    value: 'manrope',
-    labelKey: 'font.manrope',
-    sample: 'Aa',
-    family:
-      "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
-  },
-  {
-    value: 'system',
-    labelKey: 'font.system',
-    sample: 'Aa',
-    family:
-      "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-  },
-]
-
-const FONT_PREVIEW_FALLBACK =
-  "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-
-function FontConfig() {
-  const { t } = useTranslation()
-  const { font, resetFont, setFont } = useFont()
-
-  return (
-    <div>
-      <SectionTitle
-        title={t('Font')}
-        showReset={font !== fontConfig.defaultFont}
-        onReset={resetFont}
-      />
-      <Radio
-        value={font}
-        onValueChange={(v) => setFont(v as Font)}
-        className='grid w-full grid-cols-2 gap-3'
-        aria-label={t('Select interface font')}
-      >
-        {FONT_OPTIONS.map((option) => (
-          <Item
-            key={option.value}
-            value={option.value}
-            className='group flex min-w-0 flex-col items-stretch outline-none'
-            aria-label={t(option.labelKey)}
-          >
-            <div
-              className={cn(
-                'ring-border relative flex h-14 items-center justify-between overflow-hidden rounded-md px-3 ring-[1px] transition',
-                'group-data-checked:ring-primary group-data-checked:shadow-md',
-                'group-focus-visible:ring-2',
-                'group-hover:ring-primary/60'
-              )}
-              style={{
-                fontFamily:
-                  option.value === font ? option.family : FONT_PREVIEW_FALLBACK,
-              }}
-            >
-              <div className='min-w-0'>
-                <div className='text-foreground truncate text-base font-semibold leading-none'>
-                  {option.sample}
-                </div>
-                <div className='text-muted-foreground mt-1 truncate text-[11px]'>
-                  {t(option.labelKey)}
-                </div>
-              </div>
-              <span
-                aria-hidden='true'
-                className='bg-muted-foreground/25 ml-3 h-7 w-px shrink-0'
-              />
-              <CircleCheck
-                className={cn(
-                  'fill-primary absolute top-0 right-0 z-10 size-5 translate-x-1/2 -translate-y-1/2 stroke-white',
-                  'group-data-unchecked:hidden'
-                )}
-                aria-hidden='true'
-              />
-            </div>
-          </Item>
-        ))}
-      </Radio>
-    </div>
-  )
-}
-
 function PresetConfig() {
   const { t } = useTranslation()
   const { defaults, customization, setPreset } = useThemeCustomization()
@@ -414,26 +307,33 @@ function PresetConfig() {
 /**
  * Font options shown in the theme drawer.
  *
- * Each option renders a live "Aa" preview in the font it represents.
- * `Auto` deliberately leaves `fontFamily` undefined so the preview inherits
- * the currently active body font — that way the user sees what `Auto` will
- * actually look like for the active preset (Anthropic → serif glyphs,
- * everything else → sans glyphs) without us having to duplicate the
- * preset-default mapping in the UI.
+ * These use the official theme font axis (`theme_font` cookie and
+ * `data-theme-font`) instead of the old html class based font switcher.
+ * `default` still resolves against the active preset, while `sans` is the
+ * LuoYin AA interface stack declared as `--font-sans`.
  */
-const THEME_FONT_OPTIONS: {
+const FONT_OPTIONS: {
   value: ThemeFont
-  label: string
-  // CSS font-family applied to the "Aa" preview. `undefined` = inherit
-  // from the current theme (used by the `default` option).
+  labelKey: string
+  sample: string
   preview?: string
 }[] = [
-  { value: 'default', label: 'Auto', preview: undefined },
-  { value: 'sans', label: 'Sans', preview: 'var(--font-sans)' },
-  { value: 'serif', label: 'Serif', preview: 'var(--font-serif)' },
+  { value: 'default', labelKey: 'Auto', sample: 'Aa', preview: undefined },
+  {
+    value: 'sans',
+    labelKey: 'font.lll',
+    sample: 'Aa \u5b57',
+    preview: 'var(--font-sans)',
+  },
+  {
+    value: 'serif',
+    labelKey: 'font.serif',
+    sample: 'Aa',
+    preview: 'var(--font-serif)',
+  },
 ]
 
-function ThemeFontConfig() {
+function FontConfig() {
   const { t } = useTranslation()
   const { defaults, customization, setFont } = useThemeCustomization()
   return (
@@ -446,26 +346,41 @@ function ThemeFontConfig() {
       <Radio
         value={customization.font}
         onValueChange={(v) => setFont(v as ThemeFont)}
-        className='grid w-full grid-cols-3 gap-4'
+        className='grid w-full grid-cols-2 gap-3'
         aria-label={t('Select body font')}
       >
-        {THEME_FONT_OPTIONS.map((option) => (
+        {FONT_OPTIONS.map((option) => (
           <Item
             key={option.value}
             value={option.value}
-            className='group flex flex-col items-stretch outline-none'
-            aria-label={
-              option.value === 'default' ? t('System default') : option.label
-            }
+            className='group flex min-w-0 flex-col items-stretch outline-none'
+            aria-label={t(option.labelKey)}
           >
             <div
               className={cn(
-                'ring-border relative h-12 rounded-md ring-[1px] transition',
+                'ring-border relative flex h-14 items-center justify-between overflow-hidden rounded-md px-3 ring-[1px] transition',
                 'group-data-checked:ring-primary group-data-checked:shadow-md',
                 'group-focus-visible:ring-2',
                 'group-hover:ring-primary/60'
               )}
+              style={
+                option.preview
+                  ? { fontFamily: option.preview }
+                  : { font: 'inherit' }
+              }
             >
+              <div className='min-w-0'>
+                <div className='text-foreground truncate text-base font-semibold leading-none'>
+                  {option.sample}
+                </div>
+                <div className='text-muted-foreground mt-1 truncate text-[11px]'>
+                  {t(option.labelKey)}
+                </div>
+              </div>
+              <span
+                aria-hidden='true'
+                className='bg-muted-foreground/25 ml-3 h-7 w-px shrink-0'
+              />
               <CircleCheck
                 className={cn(
                   'fill-primary absolute top-0 right-0 z-10 size-5 translate-x-1/2 -translate-y-1/2 stroke-white',
@@ -473,21 +388,7 @@ function ThemeFontConfig() {
                 )}
                 aria-hidden='true'
               />
-              <span
-                aria-hidden='true'
-                className='text-foreground absolute inset-0 flex items-center justify-center text-lg leading-none font-medium'
-                style={
-                  option.preview
-                    ? { fontFamily: option.preview }
-                    : // `font: inherit` defers to the active theme so the
-                      // "Auto" tile previews what the resolved font will be.
-                      { font: 'inherit', fontSize: '1.125rem' }
-                }
-              >
-                Aa
-              </span>
             </div>
-            <div className='mt-1.5 text-center text-xs'>{option.label}</div>
           </Item>
         ))}
       </Radio>

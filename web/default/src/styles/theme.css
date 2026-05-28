@@ -27,8 +27,7 @@ For commercial licensing, please contact support@quantumnous.com
 }
 
 @theme inline {
-  --font-sans: var(--app-font-family);
-  --font-lll:
+  --font-sans:
     'Aa偷吃可爱长大的', 'Public Sans', -apple-system, BlinkMacSystemFont,
     'Segoe UI', sans-serif;
   --font-serif:
@@ -38,13 +37,6 @@ For commercial licensing, please contact support@quantumnous.com
     'Songti SC', 'STSong', 'STSongti-SC-Regular', 'PingFang SC', 'SimSun',
     'NSimSun', '宋体', 'FangSong', '仿宋', 'KaiTi', '楷体', Georgia,
     'Times New Roman', Cambria, 'Liberation Serif', serif;
-  --font-inter:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
-    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-  --font-manrope:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
-    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -95,35 +87,9 @@ For commercial licensing, please contact support@quantumnous.com
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-html.font-lll {
-  --app-font-family:
-    'Aa偷吃可爱长大的', 'Public Sans', -apple-system, BlinkMacSystemFont,
-    'Segoe UI', sans-serif;
-}
-
-html.font-inter {
-  --app-font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
-    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-}
-
-html.font-manrope {
-  --app-font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
-    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-}
-
-html.font-system {
-  --app-font-family:
-    system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
-
 :root {
   --radius: 1rem;
   --app-header-height: 3rem;
-  --app-font-family:
-    'Aa偷吃可爱长大的', 'Public Sans', -apple-system, BlinkMacSystemFont,
-    'Segoe UI', sans-serif;
   /* Static build-channel fallback consumed when JS hasn't booted yet. */
   --app-rev: '2k6e8r7p';
   /* Currently active body font. The font axis swaps this between

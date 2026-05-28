@@ -92,7 +92,8 @@ export type ContentLayout = 'full' | 'centered'
  *   preset keeps the LuoYin `lll`/sans interface font; the `anthropic`
  *   preset still resolves to serif. Mirrors how
  *   `radius: 'default'` defers to a per-preset hint.
- * - `sans` — humanist sans (Public Sans), the project's UI fallback.
+ * - `sans` — LuoYin's AA interface stack, backed by Public Sans/system
+ *   fallbacks. This is the fork's default voice.
  * - `serif` — editorial serif (Lora + CJK fallbacks), the project's
  *   "soul" typography. Inherits across the whole UI; monospace contexts
  *   keep their own family via Tailwind preflight and `.font-mono`.
@@ -169,7 +170,7 @@ export const THEME_COOKIE_KEYS = {
  * Co-located with the preset registry so a preset's signature typography
  * is declared in one place. Presets not listed here fall back to the
  * `resolveThemeFont` default of `sans`. Keep the fork's `default` preset on
- * sans so the existing LuoYin `lll` font remains the out-of-the-box voice;
+ * sans so the LuoYin AA font remains the out-of-the-box voice;
  * the Anthropic preset can still opt into the editorial serif stack.
  */
 export const PRESET_DEFAULT_FONT: Partial<
