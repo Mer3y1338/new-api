@@ -75,13 +75,15 @@ export function Home() {
       siteName={LUOYIN_BRAND_NAME}
       logo={<LuoyinWordmark />}
     >
-      <Hero isAuthenticated={isAuthenticated} />
-      <div className='absolute bottom-0 left-0 z-20 w-full pb-1 md:pb-2'>
-        <Footer
-          name={LUOYIN_BRAND_NAME}
-          compact
-          className='bg-transparent pt-0 mt-0'
-        />
+      <div className='relative h-svh overflow-hidden md:h-auto md:min-h-screen md:overflow-visible'>
+        <Hero isAuthenticated={isAuthenticated} />
+        <div className='absolute bottom-0 left-0 z-20 w-full pb-1 md:pb-2'>
+          <Footer
+            name={LUOYIN_BRAND_NAME}
+            compact
+            className='bg-transparent mt-0 px-2 pt-0 pb-1 md:px-4 md:pb-5 max-md:[&>div]:min-h-0 max-md:[&>div]:gap-1 max-md:[&>div]:px-3 max-md:[&>div]:py-1.5'
+          />
+        </div>
       </div>
     </PublicLayout>
   )

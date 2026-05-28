@@ -40,9 +40,9 @@ export function Hero(props: HeroProps) {
     (status?.docs_link as string | undefined) || 'https://docs.newapi.pro'
 
   const heroButtonClassName =
-    'h-10 rounded-full px-4 text-sm font-medium shadow-sm transition-shadow hover:shadow-md'
+    'h-9 rounded-full px-3 text-xs font-medium shadow-sm transition-shadow hover:shadow-md sm:h-10 sm:px-4 sm:text-sm'
   const heroOutlineButtonClassName =
-    'border-border/50 hover:border-border hover:bg-muted/50 h-10 rounded-full px-4 text-sm font-medium shadow-sm transition-shadow hover:shadow-md'
+    'border-border/50 hover:border-border hover:bg-muted/50 h-9 rounded-full px-3 text-xs font-medium shadow-sm transition-shadow hover:shadow-md sm:h-10 sm:px-4 sm:text-sm'
 
   const renderDocsButton = () => {
     const isExternal = docsUrl.startsWith('http')
@@ -71,7 +71,7 @@ export function Hero(props: HeroProps) {
   }
 
   return (
-    <section className='luoyin-shell relative z-10 flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 pt-28 pb-28 md:pt-32 md:pb-36'>
+    <section className='luoyin-shell relative z-10 flex h-svh min-h-0 flex-col items-center justify-center overflow-hidden px-5 pt-[clamp(4.25rem,13svh,6.25rem)] pb-[clamp(5.25rem,18svh,7rem)] sm:px-6 md:h-auto md:min-h-screen md:pt-32 md:pb-36'>
       <div
         aria-hidden
         className='absolute inset-0 -z-20 block bg-cover bg-center bg-no-repeat md:hidden'
@@ -106,25 +106,25 @@ export function Hero(props: HeroProps) {
           {t('✨ 欢迎来到我的奇妙 API 世界 🌸')}
         </div>
         <h1
-          className='luoyin-title landing-animate-fade-up text-5xl leading-[1.02] font-bold sm:text-6xl md:text-7xl'
+          className='luoyin-title landing-animate-fade-up text-[clamp(2.75rem,13.5vw,4rem)] leading-[1.02] font-bold sm:text-6xl md:text-7xl'
           style={{ animationDelay: '60ms' }}
         >
           {LUOYIN_BRAND_NAME}
         </h1>
         <p
-          className='landing-animate-fade-up mt-5 max-w-lg text-base leading-relaxed font-semibold text-white opacity-0 drop-shadow-[0_2px_8px_rgba(0,0,0,0.88)] md:text-xl'
+          className='landing-animate-fade-up mt-3 max-w-md text-[0.9375rem] leading-snug font-semibold text-white opacity-0 drop-shadow-[0_2px_8px_rgba(0,0,0,0.88)] max-[360px]:text-sm md:mt-5 md:max-w-lg md:text-xl md:leading-relaxed'
           style={{ animationDelay: '130ms' }}
         >
           {LUOYIN_TAGLINE}
         </p>
         <p
-          className='luoyin-kicker landing-animate-fade-up mt-3 text-xs opacity-0 md:text-sm'
+          className='luoyin-kicker landing-animate-fade-up mt-2 text-[11px] opacity-0 [@media(max-width:767px)_and_(max-height:520px)]:hidden md:mt-3 md:text-sm'
           style={{ animationDelay: '180ms' }}
         >
           {LUOYIN_MICRO_TAGLINE}
         </p>
         <div
-          className='landing-animate-fade-up mt-7 flex flex-wrap items-center justify-center gap-3 opacity-0'
+          className='landing-animate-fade-up mt-5 flex flex-wrap items-center justify-center gap-2 opacity-0 sm:gap-3 md:mt-7'
           style={{ animationDelay: '250ms' }}
         >
           {props.isAuthenticated ? (
@@ -161,7 +161,7 @@ export function Hero(props: HeroProps) {
       </div>
 
       <div
-        className='landing-animate-fade-up w-full opacity-0'
+        className='landing-animate-fade-up w-full opacity-0 [@media(max-width:767px)_and_(max-height:430px)]:hidden'
         style={{ animationDelay: '320ms' }}
       >
         <HeroTerminalDemo />

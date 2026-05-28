@@ -72,26 +72,26 @@ export function HeroTerminalDemo({ className }: HeroTerminalDemoProps) {
   return (
     <div
       className={cn(
-        'relative left-1/2 mx-auto mt-14 w-[min(calc(100vw-1.5rem),36rem)] -translate-x-1/2 px-0 sm:left-auto sm:w-full sm:max-w-xl sm:translate-x-0 sm:px-1',
+        'relative left-1/2 mx-auto mt-6 w-[min(calc(100vw-2rem),36rem)] -translate-x-1/2 px-0 sm:left-auto sm:mt-10 sm:w-full sm:max-w-xl sm:translate-x-0 sm:px-1 md:mt-14',
         className
       )}
     >
       <div
         className={cn(
-          'flex min-h-10 items-center gap-1 rounded-full border border-white/[0.45] bg-white/[0.72] px-1.5 py-0.5 text-foreground shadow-[0_10px_30px_-18px_rgba(30,41,59,0.55),inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-2xl transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] sm:px-2 dark:border-white/[0.16] dark:bg-white/[0.14] dark:text-white'
+          'flex min-h-9 items-center gap-1 rounded-full border border-white/[0.45] bg-white/[0.72] px-1.5 py-0.5 text-foreground shadow-[0_10px_30px_-18px_rgba(30,41,59,0.55),inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-2xl transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] sm:min-h-10 sm:px-2 dark:border-white/[0.16] dark:bg-white/[0.14] dark:text-white'
         )}
       >
         <div className='flex min-w-0 flex-1 items-baseline gap-1 rounded-full px-2.5 py-1 transition-colors duration-200 hover:bg-black/[0.06] sm:gap-1.5 sm:px-3 dark:hover:bg-white/10'>
-          <span className='shrink-0 text-[13px] leading-none font-medium text-muted-foreground sm:text-[15px] dark:text-white/[0.72]'>
+          <span className='shrink-0 text-xs leading-none font-medium text-muted-foreground sm:text-[15px] dark:text-white/[0.72]'>
             https://
           </span>
-          <span className='min-w-0 truncate text-[13px] leading-none font-semibold text-foreground sm:text-[15px] dark:text-white'>
+          <span className='min-w-0 truncate text-xs leading-none font-semibold text-foreground sm:text-[15px] dark:text-white'>
             api.nyaovo.com
           </span>
         </div>
         <span
           className={cn(
-            'inline-flex w-fit max-w-[58%] shrink-0 items-center justify-center truncate px-2 py-1 text-[13px] leading-none font-semibold text-[#66ccff] transition-all duration-200 sm:px-3 sm:text-[15px]',
+            'inline-flex w-fit max-w-[44%] shrink-0 items-center justify-center truncate px-1.5 py-1 text-xs leading-none font-semibold text-[#66ccff] transition-all duration-200 sm:max-w-[58%] sm:px-3 sm:text-[15px]',
             transitioning
               ? 'translate-y-1 opacity-0 blur-[1px]'
               : 'translate-y-0 opacity-100 blur-0'
@@ -104,12 +104,12 @@ export function HeroTerminalDemo({ className }: HeroTerminalDemoProps) {
           onClick={handleCopy}
           aria-label={t('Copy API URL')}
           className={cn(
-            'grid size-7 shrink-0 place-items-center rounded-full transition-colors duration-200 sm:size-8',
+            'grid size-6 shrink-0 place-items-center rounded-full transition-colors duration-200 sm:size-8',
             'text-muted-foreground hover:bg-black/[0.06] hover:text-foreground',
             'dark:text-white/[0.72] dark:hover:bg-white/10 dark:hover:text-white'
           )}
         >
-          <Copy className='size-4' />
+          <Copy className='size-3.5 sm:size-4' />
         </button>
       </div>
     </div>
