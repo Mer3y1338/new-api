@@ -90,6 +90,13 @@ jobs:
           ensure_label "risk-low" "2da44e" "Low risk upstream sync"
           ensure_label "risk-medium" "bf8700" "Medium risk upstream sync"
           ensure_label "risk-high" "d1242f" "High risk upstream sync"
+          ensure_label "ai-repaired" "5319e7" "Merge conflicts were repaired by the AI runner"
+          ensure_label "touches-luoyin" "d93f0b" "Touches local LuoYin frontend customization"
+          ensure_label "touches-web-default" "1d76db" "Touches the default frontend"
+          ensure_label "touches-web-classic" "006b75" "Touches the classic frontend"
+          ensure_label "touches-frontend-deps" "fbca04" "Touches frontend dependencies or lockfiles"
+          ensure_label "touches-workflow" "c5def5" "Touches GitHub Actions or workflow files"
+          ensure_label "backend-ignored" "6e7781" "Backend changes are intentionally ignored by this frontend-focused sync policy"
 
       - name: Add and fetch upstream
         run: |
@@ -138,6 +145,8 @@ jobs:
           git diff --name-only "${BASE}..${UPSTREAM_REF}" > upstream-review/file-paths.txt
           git diff --stat "${BASE}..${UPSTREAM_REF}" > upstream-review/stat.txt
           git diff "${BASE}..${UPSTREAM_REF}" > upstream-review/diff.patch
+          git diff --name-status "${BASE}..${UPSTREAM_REF}" -- web/default web/classic .github/workflows > upstream-review/frontend-files.txt || true
+          git diff "${BASE}..${UPSTREAM_REF}" -- web/default web/classic .github/workflows > upstream-review/frontend-diff.patch || true
 
           {
             echo "Target branch: ${TARGET_BRANCH}"
@@ -151,19 +160,21 @@ jobs:
           import os
           from pathlib import Path
 
-          patch = Path("upstream-review/diff.patch")
-          out = Path("upstream-review/diff-truncated.patch")
+          for name in ("diff.patch", "frontend-diff.patch"):
+              patch = Path("upstream-review") / name
+              out = Path("upstream-review") / name.replace(".patch", "-truncated.patch")
 
-          text = patch.read_text(errors="replace")
-          limit = 80_000
+              text = patch.read_text(errors="replace") if patch.exists() else ""
+              limit = 80_000
 
-          if len(text) > limit:
-              text = text[:limit] + "\n\n[DIFF 已截断：原始 diff 过大，只保留前 80000 字符用于 AI 审查]\n"
+              if len(text) > limit:
+                  text = text[:limit] + "\n\n[DIFF 已截断：原始 diff 过大，只保留前 80000 字符用于 AI 审查]\n"
 
-          out.write_text(text)
+              out.write_text(text)
           PY
 
           python3 - <<'PY'
+          import json
           import os
           from pathlib import Path
 
@@ -187,70 +198,84 @@ jobs:
               entries.append((status, file_paths))
               paths.extend(file_paths)
 
+          unique_paths = sorted(set(paths))
+
           def has_prefix(*prefixes):
-              return any(path.startswith(prefixes) for path in paths)
+              return any(path.startswith(prefixes) for path in unique_paths)
 
           def has_exact(*names):
-              return any(path in names for path in paths)
+              return any(path in names for path in unique_paths)
 
           def has_suffix(*suffixes):
-              return any(path.endswith(suffixes) for path in paths)
+              return any(path.endswith(suffixes) for path in unique_paths)
+
+          def path_contains_any(*needles):
+              lowered = [path.lower() for path in unique_paths]
+              return any(any(needle.lower() in path for needle in needles) for path in lowered)
 
           root_doc_files = {"README.md", "CHANGELOG.md", "CONTRIBUTING.md", "SECURITY.md", "LICENSE"}
           docs_suffixes = (".md", ".mdx", ".txt")
           docs_prefixes = ("docs/", ".github/ISSUE_TEMPLATE/", ".github/PULL_REQUEST_TEMPLATE")
-          docs_only = bool(paths) and all(
+          docs_only = bool(unique_paths) and all(
               path.startswith(docs_prefixes)
               or path in root_doc_files
               or ("/" not in path and path.endswith(docs_suffixes))
-              for path in paths
+              for path in unique_paths
+          )
+
+          ignored_backend_prefixes = (
+              "controller/", "model/", "relay/", "router/", "middleware/",
+              "common/", "service/", "setting/", "dto/", "constant/",
+              "types/", "pkg/", "i18n/", "oauth/",
           )
 
           impact = {
               "web_default": has_prefix("web/default/"),
               "web_classic": has_prefix("web/classic/"),
-              "backend_core": has_prefix("controller/", "model/", "relay/", "router/", "middleware/", "common/", "service/", "setting/"),
-              "build_deploy": has_exact("Dockerfile", "docker-compose.yml", "docker-compose.yaml", "Makefile", "go.mod", "go.sum", "VERSION")
-                  or has_prefix(".github/workflows/", "bin/", "docker/", "web/default/")
-                  and (has_suffix("package.json", "bun.lock", "pnpm-lock.yaml", "rsbuild.config.ts", "vite.config.js", "vite.config.ts")
-                       or has_exact("Dockerfile", "Makefile")),
-              "dependency": has_exact("go.mod", "go.sum")
-                  or has_suffix("package.json", "bun.lock", "pnpm-lock.yaml", "package-lock.json", "yarn.lock"),
+              "luoyin": path_contains_any("luoyin", "洛音", "云枢", "luotianyi")
+                  or has_prefix("web/default/src/custom/luoyin/"),
               "workflow": has_prefix(".github/workflows/"),
+              "frontend_dependency": has_exact("web/default/package.json", "web/default/bun.lock")
+                  or has_suffix("package.json", "bun.lock", "pnpm-lock.yaml", "package-lock.json", "yarn.lock"),
+              "frontend_build": has_exact("web/default/rsbuild.config.ts", "web/default/vite.config.ts", "web/default/vite.config.js")
+                  or has_prefix("web/default/public/"),
+              "backend_ignored": has_prefix(*ignored_backend_prefixes) or has_exact("go.mod", "go.sum"),
           }
 
-          high_risk_files = [
+          high_risk_frontend_files = {
               "web/default/src/main.tsx",
               "web/default/src/App.tsx",
               "web/default/src/router.tsx",
               "web/default/src/routes.tsx",
               "web/default/src/index.css",
+              "web/default/src/styles/index.css",
+              "web/default/src/styles/theme.css",
+              "web/default/src/lib/theme-customization.ts",
               "web/default/tailwind.config.js",
               "web/default/tailwind.config.ts",
               "web/default/package.json",
               "web/default/bun.lock",
-              "Dockerfile",
               ".github/workflows/upstream-sync-pr.yml",
-          ]
+          }
 
-          has_high_risk_path = any(path in high_risk_files for path in paths)
-          has_deleted_frontend = any(status.startswith("D") and any(path.startswith(("web/default/", "web/classic/")) for path in file_paths) for status, file_paths in entries)
+          has_high_risk_frontend_path = any(path in high_risk_frontend_files for path in unique_paths)
+          has_deleted_frontend = any(
+              status.startswith("D") and any(path.startswith(("web/default/", "web/classic/")) for path in file_paths)
+              for status, file_paths in entries
+          )
 
           if docs_only:
               risk = "LOW"
-              reason = "Only documentation or static documentation assets changed."
-          elif has_high_risk_path or has_deleted_frontend:
+              reason = "Only documentation changed; backend is ignored by sync policy."
+          elif impact["luoyin"] or has_high_risk_frontend_path or has_deleted_frontend or impact["workflow"] or impact["frontend_dependency"]:
               risk = "HIGH"
-              reason = "High-impact frontend, workflow, dependency, or build entry files changed."
-          elif impact["web_default"] or impact["web_classic"] or impact["build_deploy"] or impact["dependency"] or impact["workflow"]:
+              reason = "High-impact frontend/theme/workflow/dependency files changed; backend paths are intentionally ignored."
+          elif impact["web_default"] or impact["web_classic"] or impact["frontend_build"]:
               risk = "MEDIUM"
-              reason = "Frontend, build, dependency, or workflow files changed."
-          elif impact["backend_core"]:
-              risk = "MEDIUM"
-              reason = "Backend core logic changed."
+              reason = "Frontend files changed; merge/combine upstream unless it overwrites local frontend customization."
           else:
               risk = "LOW"
-              reason = "No high-impact frontend, build, dependency, workflow, or backend core paths were detected."
+              reason = "No frontend/theme/workflow/dependency risk paths detected; backend-only changes are ignored by policy and should be merged."
 
           label = {
               "LOW": "risk-low",
@@ -261,30 +286,69 @@ jobs:
           module_lines = [
               f"- web/default: {'yes' if impact['web_default'] else 'no'}",
               f"- web/classic: {'yes' if impact['web_classic'] else 'no'}",
-              f"- backend core: {'yes' if impact['backend_core'] else 'no'}",
-              f"- build/deploy: {'yes' if impact['build_deploy'] else 'no'}",
-              f"- dependencies: {'yes' if impact['dependency'] else 'no'}",
+              f"- luoyin theme/customization: {'yes' if impact['luoyin'] else 'no'}",
+              f"- frontend build/assets: {'yes' if impact['frontend_build'] else 'no'}",
+              f"- frontend dependencies: {'yes' if impact['frontend_dependency'] else 'no'}",
               f"- GitHub Actions: {'yes' if impact['workflow'] else 'no'}",
+              f"- backend paths: {'ignored-by-policy' if impact['backend_ignored'] else 'no'}",
               f"- docs only: {'yes' if docs_only else 'no'}",
           ]
+
+          merge_advice = "需要结合" if risk == "HIGH" else "可以合并"
+
+          miya_summary = {
+              "schema": "newapi-upstream-sync-v1",
+              "policy": {
+                  "owner_changes_scope": "frontend-only",
+                  "backend_review": "ignored-by-policy",
+                  "allowed_resolution": ["merge", "combine"],
+                  "discard_upstream_allowed": False,
+                  "default_rule": "merge official upstream frontend changes unless they conflict with local frontend customization; combine on conflicts",
+              },
+              "decision": {
+                  "risk": risk,
+                  "risk_label": label,
+                  "merge_advice": merge_advice,
+                  "reason": reason,
+              },
+              "touches": impact,
+              "files": {
+                  "changed_count": len(unique_paths),
+                  "changed_paths": unique_paths[:80],
+                  "truncated": len(unique_paths) > 80,
+              },
+              "recommended_checks": [
+                  "web/default typecheck" if impact["web_default"] else "frontend smoke check if UI changed",
+                  "web/default build" if impact["web_default"] or impact["frontend_dependency"] else "none",
+              ],
+          }
+
+          Path("upstream-review/miya-summary-base.json").write_text(
+              json.dumps(miya_summary, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8",
+          )
 
           impact_md = "\n".join([
               "## Automatic impact analysis",
               "",
               f"- Risk: {risk}",
               f"- Label: {label}",
+              f"- Merge advice: {merge_advice}",
               f"- Reason: {reason}",
+              "- Backend policy: ignored; MuLing only maintains frontend customization on this fork.",
+              "- Conflict policy: only merge or combine; never discard upstream updates.",
               "",
               "### Module signals",
               *module_lines,
               "",
               "### File count",
-              f"- Changed files: {len(set(paths))}",
+              f"- Changed files: {len(unique_paths)}",
           ])
 
           Path("upstream-review/impact.md").write_text(impact_md + "\n", encoding="utf-8")
 
           def write_output(name, value):
+              value = str(value)
               with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
                   if "\n" in value:
                       f.write(f"{name}<<EOF\n{value}\nEOF\n")
@@ -295,6 +359,13 @@ jobs:
           write_output("risk_label", label)
           write_output("impact_reason", reason)
           write_output("impact_summary", impact_md)
+          write_output("merge_advice", merge_advice)
+          write_output("touches_luoyin", str(impact["luoyin"]).lower())
+          write_output("touches_web_default", str(impact["web_default"]).lower())
+          write_output("touches_web_classic", str(impact["web_classic"]).lower())
+          write_output("touches_frontend_dependency", str(impact["frontend_dependency"]).lower())
+          write_output("touches_workflow", str(impact["workflow"]).lower())
+          write_output("backend_ignored", str(impact["backend_ignored"]).lower())
           PY
 
           {
@@ -401,18 +472,21 @@ jobs:
             You are repairing an upstream merge conflict in this GitHub Actions job.
 
             Requirements:
+            - MuLing only maintains frontend customization in this fork. Treat backend changes as upstream-owned and do not perform backend review or redesign.
             - First inspect the latest commit on this branch, then inspect adjacent code only as needed.
             - Only resolve files listed by `git diff --name-only --diff-filter=U`.
             - Do not modify unrelated files.
             - Remove every conflict marker: `<<<<<<<`, `=======`, `>>>>>>>`.
-            - Preserve both local customization and upstream fixes whenever possible.
-            - Especially preserve the local “洛音云枢” brand, footer/legal links/project attribution, theme customization, and i18n customization.
+            - There are only two valid conflict resolutions: merge both sides or combine both sides. There is no valid option that discards upstream updates.
+            - For frontend conflicts, preserve local “洛音云枢” brand, footer/legal links/project attribution, theme customization, and i18n customization, while integrating upstream frontend fixes/features around it.
+            - For backend conflicts, keep upstream behavior and mechanically combine local context only when required to compile; do not analyze, rewrite, or optimize backend logic.
+            - Official upstream frontend changes that do not conflict with local customization should be accepted.
             - Do not force push.
             - Do not change secrets, environment variables, deploy keys, credentials, or release tokens.
             - Do not perform broad refactors.
             - After resolving conflicts, run `git diff --check`.
             - When no unmerged files remain, run `git add` for only the conflicted files and commit with exactly: `chore: resolve upstream merge conflicts`.
-            - Write a concise repair summary to `upstream-review/ai-repair.md`.
+            - Write a concise repair summary to `upstream-review/ai-repair.md` including conflicted files, repaired files, and whether any non-conflict file was modified.
 
             Suggested workflow:
             1. Run `git status --short` and `git diff --name-only --diff-filter=U`.
@@ -520,20 +594,37 @@ jobs:
           from pathlib import Path
           from textwrap import dedent
 
-          summary = Path("upstream-review/summary.md").read_text(errors="replace")
+          metadata = Path("upstream-review/metadata.txt").read_text(errors="replace")
+          commits = Path("upstream-review/commits.txt").read_text(errors="replace")
+          summary = "\n".join([
+              "# Frontend-scoped upstream review input",
+              "",
+              metadata,
+              "",
+              "## Upstream commits",
+              commits,
+          ])
           impact = Path("upstream-review/impact.md").read_text(errors="replace")
-          files = Path("upstream-review/files.txt").read_text(errors="replace")
-          diff = Path("upstream-review/diff-truncated.patch").read_text(errors="replace")
+          files = Path("upstream-review/frontend-files.txt").read_text(errors="replace")
+          if not files.strip():
+              files = "(No frontend/workflow files changed; backend paths are ignored by policy.)\n"
+          diff = Path("upstream-review/frontend-diff-truncated.patch").read_text(errors="replace")
+          if not diff.strip():
+              diff = "(No frontend/workflow diff provided; backend diff is intentionally omitted by policy.)\n"
 
           prompt = dedent(f"""
           你是这个 GitHub Actions 里的 Claude Code 上游同步审查 agent。
 
-          你的目标：在完整仓库中进行一次“有限自主”的代码审查，然后把最终报告写入 `upstream-review/ai-review.md`。
+          你的目标：在完整仓库中进行一次“前端范围限定”的代码审查，然后把最终报告写入 `upstream-review/ai-review.md`。
 
-          重要限制，必须遵守：
-          - 优先查看当前分支最新提交，再按需查看相邻代码上下文。
+          核心规则，必须遵守：
+          - 慕棱明确只维护这个 fork 的前端自定义；不要审查后端，不要给后端风险结论，不要建议后端修复。
+          - 上游更新的默认策略是能合就合；官方前端更新只要不冲突本地自定义就接受。
+          - 冲突解决只有两个选项：合并、结合。没有放弃上游更新、粗暴 ours/theirs、丢弃官方改动这个选项。
+          - 如果涉及后端路径，只写“后端按政策忽略，默认跟随上游”，不要继续展开。
+          - 优先查看当前分支最新提交，再按需查看相邻前端代码上下文。
           - 只读审查，不要修改业务代码、配置、依赖、锁文件或 workflow。
-          - 优先阅读 changed files；为了确认调用链/影响范围，可以充分查看相关文件。
+          - 优先阅读 frontend changed files；为了确认主题影响，可以查看相关前端文件。
           - 不要读取 dist/build/vendor/node_modules。
           - 不要运行全量测试、构建、安装依赖、联网命令或格式化命令。
           - 允许使用 `git diff`、`git show`、`git grep`、`rg`、`sed`、`head`、`wc` 做小范围检查。
@@ -543,48 +634,50 @@ jobs:
           审查重点：
           - 是否影响我的自定义主题“洛音云枢”。
           - web/default、web/classic 是否被触及。
-          - controller/model/relay/service/common/middleware/setting 等后端核心是否有 API、计费、usage、流式、工具调用风险。
-          - Docker、GitHub Actions、依赖锁、构建流程是否被触及。
+          - 官方前端更新是否能直接合并，还是需要和本地主题结合。
+          - Docker、GitHub Actions、前端依赖锁、前端构建流程是否被触及。
+          - 后端路径不要审查；只按政策说明已忽略。
 
           输出格式必须严格如下，且整体尽量短：
 
-          Codex审查：用 1 句话总结本次 upstream 更新的性质、主要风险、是否需要维护者跟进。
+          Codex审查：用 1 句话总结本次 upstream 更新的前端性质、主要风险、是否需要维护者跟进。
 
-          合并建议：只能选择一个：可以合并 / 谨慎合并 / 暂不合并。后面用一句话说明原因。
+          合并建议：只能选择一个：可以合并 / 需要结合。后面用一句话说明原因。不要输出拒绝合并、放弃上游、丢弃官方改动这类结论。
 
           更新文件：
-          - 用 3 到 8 条列出主要更新模块和关键文件。
+          - 用 3 到 8 条列出主要前端更新模块和关键文件。
           - 如果文件很多，只列高风险或代表性文件。
-          - 必须说明是否影响 web/default、web/classic、构建/依赖、后端核心。
+          - 必须说明是否影响 web/default、web/classic、洛音云枢、前端依赖/构建/workflow。
+          - 如果有后端文件，只写“后端路径按政策忽略，默认跟随上游”。
 
           下一步：
-          用 1 到 2 句话说明维护者下一步最应该做什么。
+          用 1 到 2 句话说明 Miya/维护者下一步最应该做什么。
 
           Codex审查报告：
 
           ## 风险等级
 
-          LOW / MEDIUM / HIGH，只能选一个，并说明原因。
+          LOW / MEDIUM / HIGH，只能选一个，并说明前端原因。
 
           ## 我查看了什么
 
-          列出你实际读取/搜索过的文件或命令，不超过 10 条。
+          列出你实际读取/搜索过的前端文件或命令，不超过 10 条。不要列后端文件。
 
           ## 影响范围
 
-          简短说明主题、前端、后端 API、usage、流式、Docker 的影响。
+          简短说明洛音云枢主题、web/default、web/classic、前端依赖/构建/workflow 的影响；后端写“按政策忽略”。
 
           ## 重点文件
 
-          只分析最重要的文件或模块，不要逐个展开所有低风险文件。
+          只分析最重要的前端文件或模块，不要逐个展开所有低风险文件。
 
           ## 手动检查
 
-          给出具体 checklist。
+          给出具体前端 checklist。
 
           ## 验证步骤
 
-          给出最短可执行验证顺序。
+          给出最短可执行前端验证顺序。
 
           ---
 
@@ -644,15 +737,15 @@ jobs:
           if os.environ.get("SKIP_AI_REVIEW") == "true":
               status = "skipped"
               review = f"""
-              Codex审查：本次 workflow_dispatch 选择跳过 AI 审查，请人工查看同步信息后决定是否合并。
+              Codex审查：本次 workflow_dispatch 选择跳过 AI 审查，请按前端范围查看同步信息后决定是否合并。
 
-              合并建议：谨慎合并。原因是没有运行 repo-aware 审查。
+              合并建议：需要结合。原因是没有运行 repo-aware 前端审查。
 
               更新文件：
-              - 见同步信息中的 changed files。
+              - 见同步信息中的 changed files；后端路径按政策忽略，默认跟随上游。
 
               下一步：
-              请人工检查 changed files 和 diff，确认没有影响主题、构建或核心 API。
+              请检查 changed files 中的前端、主题、workflow、前端依赖/构建相关变更，确认没有覆盖洛音云枢自定义。
 
               Codex审查报告：
 
@@ -667,7 +760,7 @@ jobs:
               ## 手动检查
 
               - [ ] 检查 changed files。
-              - [ ] 检查是否影响 web/default 或后端核心路径。
+              - [ ] 检查是否影响 web/default、web/classic、洛音云枢主题、前端依赖/构建或 workflow。
 
               ---
 
@@ -676,15 +769,15 @@ jobs:
           elif not review_path.exists() or not review_path.read_text(encoding="utf-8", errors="replace").strip():
               status = "failed"
               review = f"""
-              Codex审查：Claude Code repo-aware 审查没有产出报告，请展开同步信息人工确认。
+              Codex审查：Claude Code repo-aware 前端审查没有产出报告，请展开同步信息按前端范围确认。
 
-              合并建议：谨慎合并。原因是自动审查失败，但同步分支已经生成。
+              合并建议：需要结合。原因是自动审查失败，但同步分支已经生成。
 
               更新文件：
-              - 见同步信息中的 changed files。
+              - 见同步信息中的 changed files；后端路径按政策忽略，默认跟随上游。
 
               下一步：
-              请人工检查 changed files、diff 和 workflow artifact；必要时重新运行 workflow。
+              请检查前端、主题、workflow、前端依赖/构建相关 changed files；必要时重新运行 workflow。
 
               Codex审查报告：
 
@@ -699,7 +792,7 @@ jobs:
               ## 手动检查
 
               - [ ] 检查 changed files。
-              - [ ] 检查是否影响 web/default、web/classic、构建/依赖或后端核心。
+              - [ ] 检查是否影响 web/default、web/classic、洛音云枢主题、前端依赖/构建或 workflow。
 
               ---
 
@@ -722,6 +815,19 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           REVIEW_MODEL: ${{ secrets.ANTHROPIC_MODEL }}
+          RISK_LEVEL: ${{ steps.changes.outputs.risk_level }}
+          RISK_LABEL: ${{ steps.changes.outputs.risk_label }}
+          MERGE_ADVICE: ${{ steps.changes.outputs.merge_advice }}
+          IMPACT_REASON: ${{ steps.changes.outputs.impact_reason }}
+          TOUCHES_LUOYIN: ${{ steps.changes.outputs.touches_luoyin }}
+          TOUCHES_WEB_DEFAULT: ${{ steps.changes.outputs.touches_web_default }}
+          TOUCHES_WEB_CLASSIC: ${{ steps.changes.outputs.touches_web_classic }}
+          TOUCHES_FRONTEND_DEPS: ${{ steps.changes.outputs.touches_frontend_dependency }}
+          TOUCHES_WORKFLOW: ${{ steps.changes.outputs.touches_workflow }}
+          BACKEND_IGNORED: ${{ steps.changes.outputs.backend_ignored }}
+          MERGE_CONFLICT: ${{ steps.merge.outputs.merge_conflict }}
+          CONFLICT_COUNT: ${{ steps.merge.outputs.conflict_count }}
+          REPAIR_RESOLVED: ${{ steps.repair_validation.outputs.resolved || 'false' }}
         run: |
           BRANCH="${{ steps.merge.outputs.branch }}"
           RISK_LABEL="${{ steps.changes.outputs.risk_label }}"
@@ -730,6 +836,7 @@ jobs:
           export BRANCH
 
           python3 - <<'PY'
+          import json
           from pathlib import Path
           import os
           from textwrap import dedent
@@ -756,7 +863,7 @@ jobs:
               review_intro = dedent(f"""\
               Codex审查：AI 审查报告未按预期格式返回，请展开下方报告查看完整内容。
 
-              合并建议：谨慎合并。原因是报告格式异常，需要人工确认风险。
+              合并建议：需要结合。原因是报告格式异常，需要人工确认风险。
 
               更新文件：
               - 见下方同步信息与完整审查报告。
@@ -775,7 +882,77 @@ jobs:
           else:
               review_footer = f"---\nCodex审查：{review_model}"
 
+          def env_bool(name):
+              return str(os.environ.get(name, "")).strip().lower() == "true"
+
+          def env_int(name):
+              try:
+                  return int(str(os.environ.get(name, "0")).strip() or "0")
+              except ValueError:
+                  return 0
+
+          try:
+              miya_summary = json.loads(Path("upstream-review/miya-summary-base.json").read_text(encoding="utf-8"))
+          except Exception:
+              miya_summary = {"schema": "newapi-upstream-sync-v1"}
+
+          repair = {
+              "conflict_detected": env_bool("MERGE_CONFLICT"),
+              "conflict_count": env_int("CONFLICT_COUNT"),
+              "ai_repaired_conflicts": env_bool("REPAIR_RESOLVED"),
+          }
+
+          if Path("upstream-review/conflict-files.txt").exists():
+              repair["conflict_files"] = [
+                  line.strip()
+                  for line in Path("upstream-review/conflict-files.txt").read_text(errors="replace").splitlines()
+                  if line.strip() and not line.startswith("(")
+              ]
+
+          freshness = {
+              "contains_latest_upstream_at_workflow_run": True,
+              "note": "This is evaluated at workflow run time. If upstream moves later, Miya will re-check live before merging.",
+          }
+
+          miya_summary.update({
+              "decision": {
+                  "risk": os.environ.get("RISK_LEVEL") or miya_summary.get("decision", {}).get("risk", "UNKNOWN"),
+                  "risk_label": os.environ.get("RISK_LABEL") or miya_summary.get("decision", {}).get("risk_label", ""),
+                  "merge_advice": os.environ.get("MERGE_ADVICE") or miya_summary.get("decision", {}).get("merge_advice", "可以合并"),
+                  "reason": os.environ.get("IMPACT_REASON") or miya_summary.get("decision", {}).get("reason", ""),
+              },
+              "touches": {
+                  "luoyin_theme": env_bool("TOUCHES_LUOYIN"),
+                  "web_default": env_bool("TOUCHES_WEB_DEFAULT"),
+                  "web_classic": env_bool("TOUCHES_WEB_CLASSIC"),
+                  "frontend_dependencies": env_bool("TOUCHES_FRONTEND_DEPS"),
+                  "workflow": env_bool("TOUCHES_WORKFLOW"),
+                  "backend_ignored_by_policy": env_bool("BACKEND_IGNORED"),
+              },
+              "repair": repair,
+              "upstream_freshness": freshness,
+              "miya_reading_order": [
+                  "Read this JSON first",
+                  "Check live upstream freshness before merge",
+                  "Inspect AI repair files only if ai_repaired_conflicts is true",
+                  "Ignore backend by policy; this fork only protects frontend customization",
+              ],
+          })
+
+          Path("upstream-review/miya-summary.json").write_text(
+              json.dumps(miya_summary, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8",
+          )
+
+          quick_verdict_json = json.dumps(miya_summary, ensure_ascii=False, indent=2)
+
           body = dedent(f"""\
+          ## Miya Quick Verdict
+
+          ```json
+          {quick_verdict_json}
+          ```
+
           {review_intro}
 
           **Workflow note:** 后续上游同步会更新这个 PR；详细审查和同步信息默认折叠，避免 PR 顶部过长。
@@ -894,6 +1071,13 @@ jobs:
             remove_label "$EXISTING_PR" "risk-high"
             remove_label "$EXISTING_PR" "ai-reviewed"
             remove_label "$EXISTING_PR" "ai-review-failed"
+            remove_label "$EXISTING_PR" "ai-repaired"
+            remove_label "$EXISTING_PR" "touches-luoyin"
+            remove_label "$EXISTING_PR" "touches-web-default"
+            remove_label "$EXISTING_PR" "touches-web-classic"
+            remove_label "$EXISTING_PR" "touches-frontend-deps"
+            remove_label "$EXISTING_PR" "touches-workflow"
+            remove_label "$EXISTING_PR" "backend-ignored"
 
             if [ "$AI_STATUS" = "ok" ]; then
               AI_LABEL="ai-reviewed"
@@ -995,6 +1179,22 @@ jobs:
           add_label "$PR_NUMBER" "upstream-sync"
           add_label "$PR_NUMBER" "$RISK_LABEL"
           add_label "$PR_NUMBER" "$AI_LABEL"
+
+          add_label_if_true() {
+            local value="$1"
+            local label="$2"
+            if [ "$value" = "true" ]; then
+              add_label "$PR_NUMBER" "$label"
+            fi
+          }
+
+          add_label_if_true "$REPAIR_RESOLVED" "ai-repaired"
+          add_label_if_true "$TOUCHES_LUOYIN" "touches-luoyin"
+          add_label_if_true "$TOUCHES_WEB_DEFAULT" "touches-web-default"
+          add_label_if_true "$TOUCHES_WEB_CLASSIC" "touches-web-classic"
+          add_label_if_true "$TOUCHES_FRONTEND_DEPS" "touches-frontend-deps"
+          add_label_if_true "$TOUCHES_WORKFLOW" "touches-workflow"
+          add_label_if_true "$BACKEND_IGNORED" "backend-ignored"
 
           echo "number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
 
