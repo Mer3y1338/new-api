@@ -945,40 +945,56 @@ jobs:
           )
 
           quick_verdict_json = json.dumps(miya_summary, ensure_ascii=False, indent=2)
+          decision = miya_summary.get("decision", {})
+          touches = miya_summary.get("touches", {})
+          repair_info = miya_summary.get("repair", {})
+
+          def mark(value):
+              return "✅" if value else "—"
+
+          top_summary = "\n".join([
+              "| 项目 | 结论 |",
+              "| --- | --- |",
+              f"| 合并建议 | **{decision.get('merge_advice', '可以合并')}** |",
+              f"| 风险等级 | `{decision.get('risk', 'UNKNOWN')}` |",
+              f"| 主要原因 | {decision.get('reason', '')} |",
+              f"| 洛音云枢 | {mark(touches.get('luoyin_theme'))} |",
+              f"| web/default | {mark(touches.get('web_default'))} |",
+              f"| web/classic | {mark(touches.get('web_classic'))} |",
+              f"| 前端依赖 / workflow | {mark(touches.get('frontend_dependencies') or touches.get('workflow'))} |",
+              f"| AI 修冲突 | {mark(repair_info.get('ai_repaired_conflicts'))} |",
+              "| 后端 | 按政策忽略，默认跟随上游 |",
+          ])
 
           body = dedent(f"""\
-          ## Miya Quick Verdict
+          # Sync upstream/{target_branch}
+
+          > 这份 PR 只按慕棱的前端自定义规则判断：官方更新能合就合；冲突只允许合并或结合；不丢上游；后端默认跟随上游。
+
+          ## Quick verdict
+
+          {top_summary}
+
+          {review_intro}
+
+          <details>
+          <summary>给 Miya 读取的机器摘要 JSON</summary>
 
           ```json
           {quick_verdict_json}
           ```
 
-          {review_intro}
-
-          **Workflow note:** 后续上游同步会更新这个 PR；详细审查和同步信息默认折叠，避免 PR 顶部过长。
-
-          <details>
-          <summary>这个同步流程如何工作</summary>
-
-          - 从官方 `upstream/{target_branch}` 拉取新提交。
-          - 在 `{target_branch}` 的同步分支上尝试合并 upstream。
-          - 自动生成影响分析和 Codex 审查。
-          - 创建或更新当前同步 PR。
-          - 如果出现冲突，会停止创建 PR 并记录冲突文件。
-
           </details>
 
           <details>
-          <summary>Codex审查报告</summary>
+          <summary>Codex 审查报告</summary>
 
           {review_detail}
 
           </details>
 
-          {review_footer}
-
           <details>
-          <summary>同步信息</summary>
+          <summary>同步信息 / commits / files</summary>
 
           ## Metadata
 
@@ -1011,6 +1027,19 @@ jobs:
           {run_url}
 
           </details>
+
+          <details>
+          <summary>这个同步流程如何工作</summary>
+
+          - 从官方 `upstream/{target_branch}` 拉取新提交。
+          - 在 `{target_branch}` 的同步分支上尝试合并 upstream。
+          - 只按前端自定义范围生成影响分析和 Codex 审查。
+          - 如果出现冲突，AI 只允许“合并”或“结合”，不能丢弃上游更新。
+          - 后续上游同步会更新这个 PR。
+
+          </details>
+
+          {review_footer}
           """)
 
           limit = 60000
