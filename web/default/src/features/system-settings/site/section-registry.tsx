@@ -16,6 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
+import { LandingPageSection } from '../general/landing-page-section'
 import { SystemInfoSection } from '../general/system-info-section'
 import {
   parseHeaderNavModules,
@@ -58,6 +59,23 @@ const SITE_SECTIONS = [
     titleKey: 'System Notice',
     build: (settings: SiteSettings) => (
       <NoticeSection defaultValue={settings.Notice ?? ''} />
+    ),
+  },
+  {
+    id: 'landing-page',
+    titleKey: 'Landing Page',
+    build: (settings: SiteSettings) => (
+      <LandingPageSection
+        defaultValues={{
+          LandingPageBrandName: settings.LandingPageBrandName,
+          LandingPageTagline: settings.LandingPageTagline,
+          LandingPageMicroTagline: settings.LandingPageMicroTagline,
+          LandingPageEyebrow: settings.LandingPageEyebrow,
+          LandingPageBgImageMobile: settings.LandingPageBgImageMobile,
+          LandingPageBgImagePc: settings.LandingPageBgImagePc,
+          LandingPageTerminalEndpoints: settings.LandingPageTerminalEndpoints,
+        }}
+      />
     ),
   },
   {

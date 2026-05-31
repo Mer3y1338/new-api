@@ -67,6 +67,13 @@ func InitOptionMap() {
 	common.OptionMap["Notice"] = ""
 	common.OptionMap["About"] = ""
 	common.OptionMap["HomePageContent"] = ""
+	common.OptionMap["LandingPageBrandName"] = ""
+	common.OptionMap["LandingPageTagline"] = ""
+	common.OptionMap["LandingPageMicroTagline"] = ""
+	common.OptionMap["LandingPageEyebrow"] = ""
+	common.OptionMap["LandingPageBgImageMobile"] = ""
+	common.OptionMap["LandingPageBgImagePc"] = ""
+	common.OptionMap["LandingPageTerminalEndpoints"] = ""
 	common.OptionMap["Footer"] = common.Footer
 	common.OptionMap["SystemName"] = common.SystemName
 	common.OptionMap["Logo"] = common.Logo

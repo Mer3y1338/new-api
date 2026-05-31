@@ -69,6 +69,13 @@ export type SiteSettings = {
   'legal.privacy_policy': string
   HeaderNavModules: string
   SidebarModulesAdmin: string
+  LandingPageBrandName: string
+  LandingPageTagline: string
+  LandingPageMicroTagline: string
+  LandingPageEyebrow: string
+  LandingPageBgImageMobile: string
+  LandingPageBgImagePc: string
+  LandingPageTerminalEndpoints: string
 }
 
 export type AuthSettings = {

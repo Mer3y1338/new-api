@@ -25,12 +25,13 @@ export const LUOYIN_WORDMARK_SRC = '/wordmark-luoyin.svg'
 
 type LuoyinWordmarkProps = {
   className?: string
+  src?: string
 }
 
-export function LuoyinWordmark({ className }: LuoyinWordmarkProps) {
+export function LuoyinWordmark({ className, src }: LuoyinWordmarkProps) {
   return (
     <img
-      src={LUOYIN_WORDMARK_SRC}
+      src={src || LUOYIN_WORDMARK_SRC}
       alt=''
       draggable={false}
       className={cn(

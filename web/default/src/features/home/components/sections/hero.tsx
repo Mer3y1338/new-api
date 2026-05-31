@@ -21,11 +21,7 @@ import { ArrowRight, BookOpen } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useStatus } from '@/hooks/use-status'
 import { Button } from '@/components/ui/button'
-import {
-  LUOYIN_BRAND_NAME,
-  LUOYIN_MICRO_TAGLINE,
-  LUOYIN_TAGLINE,
-} from '@/custom/luoyin/brand'
+import { useHomeBranding } from '../../hooks/use-home-branding'
 import { HeroTerminalDemo } from '../hero-terminal-demo'
 
 interface HeroProps {
@@ -36,6 +32,7 @@ interface HeroProps {
 export function Hero(props: HeroProps) {
   const { t } = useTranslation()
   const { status } = useStatus()
+  const branding = useHomeBranding()
   const docsUrl =
     (status?.docs_link as string | undefined) || 'https://docs.newapi.pro'
 
@@ -76,16 +73,14 @@ export function Hero(props: HeroProps) {
         aria-hidden
         className='absolute inset-0 -z-20 block bg-cover bg-center bg-no-repeat md:hidden'
         style={{
-          backgroundImage:
-            'url(https://api.nyaovo.com/image/api/random?device=mobile)',
+          backgroundImage: `url(${branding.bgImageMobile})`,
         }}
       />
       <div
         aria-hidden
         className='absolute inset-0 -z-20 hidden bg-cover bg-center bg-no-repeat md:block'
         style={{
-          backgroundImage:
-            'url(https://api.nyaovo.com/image/api/random?device=pc)',
+          backgroundImage: `url(${branding.bgImagePc})`,
         }}
       />
 
@@ -103,25 +98,25 @@ export function Hero(props: HeroProps) {
           className='luoyin-chapter landing-animate-fade-up font-bold text-pink-600 opacity-0 dark:text-pink-300'
           style={{ animationDelay: '0ms' }}
         >
-          {t('✨ 欢迎来到我的奇妙 API 世界 🌸')}
+          {branding.eyebrow}
         </div>
         <h1
           className='luoyin-title landing-animate-fade-up text-[clamp(2.75rem,13.5vw,4rem)] leading-[1.02] font-bold sm:text-6xl md:text-7xl'
           style={{ animationDelay: '60ms' }}
         >
-          {LUOYIN_BRAND_NAME}
+          {branding.brandName}
         </h1>
         <p
           className='landing-animate-fade-up mt-3 max-w-md text-[0.9375rem] leading-snug font-semibold text-white opacity-0 drop-shadow-[0_2px_8px_rgba(0,0,0,0.88)] max-[360px]:text-sm md:mt-5 md:max-w-lg md:text-xl md:leading-relaxed'
           style={{ animationDelay: '130ms' }}
         >
-          {LUOYIN_TAGLINE}
+          {branding.tagline}
         </p>
         <p
           className='luoyin-kicker landing-animate-fade-up mt-2 text-[11px] opacity-0 [@media(max-width:767px)_and_(max-height:520px)]:hidden md:mt-3 md:text-sm'
           style={{ animationDelay: '180ms' }}
         >
-          {LUOYIN_MICRO_TAGLINE}
+          {branding.microTagline}
         </p>
         <div
           className='landing-animate-fade-up mt-5 flex flex-wrap items-center justify-center gap-2 opacity-0 sm:gap-3 md:mt-7'
@@ -164,7 +159,11 @@ export function Hero(props: HeroProps) {
         className='landing-animate-fade-up w-full opacity-0 [@media(max-width:767px)_and_(max-height:430px)]:hidden'
         style={{ animationDelay: '320ms' }}
       >
-        <HeroTerminalDemo />
+        <HeroTerminalDemo
+          baseUrl={branding.baseUrl}
+          displayHost={branding.displayHost}
+          endpoints={branding.endpoints}
+        />
       </div>
     </section>
   )

@@ -21,27 +21,44 @@ import { Copy } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 
-const API_BASE_URL = 'https://api.nyaovo.com'
-
-const API_ENDPOINTS = [
+const DEFAULT_BASE_URL = 'https://api.nyaovo.com'
+const DEFAULT_DISPLAY_HOST = 'api.nyaovo.com'
+const DEFAULT_ENDPOINTS = [
   '/v1/chat/completions',
   '/v1/responses',
   '/v1/messages',
-] as const
+]
 
 const CYCLE_INTERVAL = 2600
 const TRANSITION_MS = 180
 
 interface HeroTerminalDemoProps {
   className?: string
+  baseUrl?: string
+  displayHost?: string
+  endpoints?: string[]
 }
 
-export function HeroTerminalDemo({ className }: HeroTerminalDemoProps) {
+export function HeroTerminalDemo({
+  className,
+  baseUrl = DEFAULT_BASE_URL,
+  displayHost = DEFAULT_DISPLAY_HOST,
+  endpoints,
+}: HeroTerminalDemoProps) {
   const { t } = useTranslation()
+  const resolvedEndpoints =
+    endpoints && endpoints.length > 0 ? endpoints : DEFAULT_ENDPOINTS
   const [activeIndex, setActiveIndex] = useState(0)
   const [transitioning, setTransitioning] = useState(false)
   const intervalRef = useRef<ReturnType<typeof setInterval>>(undefined)
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined)
+
+  // Keep the active index within bounds if the endpoint list changes.
+  useEffect(() => {
+    setActiveIndex((prev) =>
+      prev < resolvedEndpoints.length ? prev : 0
+    )
+  }, [resolvedEndpoints.length])
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -50,7 +67,7 @@ export function HeroTerminalDemo({ className }: HeroTerminalDemoProps) {
     intervalRef.current = setInterval(() => {
       setTransitioning(true)
       timeoutRef.current = setTimeout(() => {
-        setActiveIndex((prev) => (prev + 1) % API_ENDPOINTS.length)
+        setActiveIndex((prev) => (prev + 1) % resolvedEndpoints.length)
         setTransitioning(false)
       }, TRANSITION_MS)
     }, CYCLE_INTERVAL)
@@ -59,10 +76,10 @@ export function HeroTerminalDemo({ className }: HeroTerminalDemoProps) {
       if (intervalRef.current) clearInterval(intervalRef.current)
       if (timeoutRef.current) clearTimeout(timeoutRef.current)
     }
-  }, [])
+  }, [resolvedEndpoints.length])
 
-  const endpoint = API_ENDPOINTS[activeIndex]
-  const fullUrl = `${API_BASE_URL}${endpoint}`
+  const endpoint = resolvedEndpoints[activeIndex] ?? resolvedEndpoints[0]
+  const fullUrl = `${baseUrl}${endpoint}`
 
   const handleCopy = async () => {
     if (!navigator.clipboard) return
@@ -86,7 +103,7 @@ export function HeroTerminalDemo({ className }: HeroTerminalDemoProps) {
             https://
           </span>
           <span className='min-w-0 truncate text-xs leading-none font-semibold text-foreground sm:text-[15px] dark:text-white'>
-            api.nyaovo.com
+            {displayHost}
           </span>
         </div>
         <span

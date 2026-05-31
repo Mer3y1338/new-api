@@ -21,8 +21,9 @@ import { useAuthStore } from '@/stores/auth-store'
 import { Markdown } from '@/components/ui/markdown'
 import { PublicLayout } from '@/components/layout'
 import { Footer } from '@/components/layout/components/footer'
-import { LUOYIN_BRAND_NAME, LuoyinWordmark } from '@/custom/luoyin/brand'
+import { LuoyinWordmark } from '@/custom/luoyin/brand'
 import { Hero } from './components'
+import { useHomeBranding } from './hooks/use-home-branding'
 import { useHomePageContent } from './hooks'
 
 export function Home() {
@@ -30,13 +31,14 @@ export function Home() {
   const { auth } = useAuthStore()
   const isAuthenticated = !!auth.user
   const { content, isLoaded, isUrl } = useHomePageContent()
+  const { brandName, wordmarkSrc } = useHomeBranding()
 
   if (!isLoaded) {
     return (
       <PublicLayout
         showMainContainer={false}
-        siteName={LUOYIN_BRAND_NAME}
-        logo={<LuoyinWordmark />}
+        siteName={brandName}
+        logo={<LuoyinWordmark src={wordmarkSrc} />}
       >
         <main className='flex min-h-screen items-center justify-center'>
           <div className='text-muted-foreground'>{t('Loading...')}</div>
@@ -49,8 +51,8 @@ export function Home() {
     return (
       <PublicLayout
         showMainContainer={false}
-        siteName={LUOYIN_BRAND_NAME}
-        logo={<LuoyinWordmark />}
+        siteName={brandName}
+        logo={<LuoyinWordmark src={wordmarkSrc} />}
       >
         <main className='overflow-x-hidden'>
           {isUrl ? (
@@ -72,14 +74,14 @@ export function Home() {
   return (
     <PublicLayout
       showMainContainer={false}
-      siteName={LUOYIN_BRAND_NAME}
-      logo={<LuoyinWordmark />}
+      siteName={brandName}
+      logo={<LuoyinWordmark src={wordmarkSrc} />}
     >
       <div className='relative h-svh overflow-hidden md:h-auto md:min-h-screen md:overflow-visible'>
         <Hero isAuthenticated={isAuthenticated} />
         <div className='absolute bottom-0 left-0 z-20 w-full pb-1 md:pb-2'>
           <Footer
-            name={LUOYIN_BRAND_NAME}
+            name={brandName}
             compact
             className='bg-transparent mt-0 px-2 pt-0 pb-1 md:px-4 md:pb-5 max-md:[&>div]:min-h-0 max-md:[&>div]:gap-1 max-md:[&>div]:px-3 max-md:[&>div]:py-1.5'
           />

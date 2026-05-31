@@ -71,6 +71,16 @@ func GetStatus(c *gin.Context) {
 		"turnstile_check":             common.TurnstileCheckEnabled,
 		"turnstile_site_key":          common.TurnstileSiteKey,
 		"docs_link":                   operation_setting.GetGeneralSetting().DocsLink,
+
+		// 落地页可配置内容（空字符串时前端回退到内置默认值）
+		"landing_page_brand_name":         common.OptionMap["LandingPageBrandName"],
+		"landing_page_tagline":            common.OptionMap["LandingPageTagline"],
+		"landing_page_micro_tagline":      common.OptionMap["LandingPageMicroTagline"],
+		"landing_page_eyebrow":            common.OptionMap["LandingPageEyebrow"],
+		"landing_page_bg_image_mobile":    common.OptionMap["LandingPageBgImageMobile"],
+		"landing_page_bg_image_pc":        common.OptionMap["LandingPageBgImagePc"],
+		"landing_page_terminal_endpoints": common.OptionMap["LandingPageTerminalEndpoints"],
+
 		"quota_per_unit":              common.QuotaPerUnit,
 		// 兼容旧前端：保留 display_in_currency，同时提供新的 quota_display_type
 		"display_in_currency":           operation_setting.IsCurrencyDisplay(),

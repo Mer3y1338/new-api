@@ -37,6 +37,13 @@ const defaultSiteSettings: SiteSettings = {
   'legal.privacy_policy': '',
   HeaderNavModules: '',
   SidebarModulesAdmin: '',
+  LandingPageBrandName: '',
+  LandingPageTagline: '',
+  LandingPageMicroTagline: '',
+  LandingPageEyebrow: '',
+  LandingPageBgImageMobile: '',
+  LandingPageBgImagePc: '',
+  LandingPageTerminalEndpoints: '',
 }
 
 export function SiteSettings() {
