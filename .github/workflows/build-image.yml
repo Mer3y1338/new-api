@@ -2,16 +2,21 @@ name: Build GHCR image
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
+    inputs:
+      tag:
+        description: "Release tag to build, e.g. v1.0.0-rc.15"
+        required: true
+        type: string
+  release:
+    types:
+      - published
 
 permissions:
   contents: read
   packages: write
 
 concurrency:
-  group: build-ghcr-image
+  group: build-ghcr-image-${{ github.event.release.tag_name || inputs.tag || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
@@ -20,23 +25,49 @@ jobs:
     timeout-minutes: 60
 
     steps:
-      - name: Check out
+      - name: Check out release tag
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
+          ref: ${{ github.event.release.tag_name || inputs.tag }}
 
       - name: Prepare image metadata
         id: image
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
+          RELEASE_PRERELEASE: ${{ github.event.release.prerelease || false }}
         run: |
+          set -euo pipefail
+
+          if [ -z "${RELEASE_TAG}" ]; then
+            echo "::error::Release tag is required."
+            exit 1
+          fi
+
+          if ! git rev-parse "refs/tags/${RELEASE_TAG}" >/dev/null 2>&1; then
+            echo "::error::Tag '${RELEASE_TAG}' does not exist in this repository."
+            exit 1
+          fi
+
           owner_lowercase="$(echo "$GITHUB_REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')"
-          short_sha="$(git rev-parse --short=12 HEAD)"
           image="ghcr.io/${owner_lowercase}/new-api"
 
-          echo "image=${image}" >> "$GITHUB_OUTPUT"
-          echo "short_sha=${short_sha}" >> "$GITHUB_OUTPUT"
+          echo "${RELEASE_TAG}" > VERSION
+
+          {
+            echo "image=${image}"
+            echo "tag=${RELEASE_TAG}"
+            echo "tags<<EOF"
+            echo "${image}:${RELEASE_TAG}"
+            if [ "${RELEASE_PRERELEASE}" != "true" ]; then
+              echo "${image}:latest"
+            fi
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
           echo "Image: ${image}"
-          echo "Short SHA: ${short_sha}"
+          echo "Release tag: ${RELEASE_TAG}"
+          echo "Prerelease: ${RELEASE_PRERELEASE}"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -55,21 +86,20 @@ jobs:
           file: ./Dockerfile
           platforms: linux/amd64
           push: true
-          tags: |
-            ${{ steps.image.outputs.image }}:latest
-            ${{ steps.image.outputs.image }}:sha-${{ steps.image.outputs.short_sha }}
+          tags: ${{ steps.image.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Summary
         run: |
           {
-            echo "## Docker image built"
+            echo "## GHCR image built from release"
             echo
-            echo "Image:"
+            echo "Release tag: \`${{ steps.image.outputs.tag }}\`"
+            echo
+            echo "Image tags:"
             echo
             echo '```txt'
-            echo "${{ steps.image.outputs.image }}:latest"
-            echo "${{ steps.image.outputs.image }}:sha-${{ steps.image.outputs.short_sha }}"
+            echo "${{ steps.image.outputs.tags }}"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"

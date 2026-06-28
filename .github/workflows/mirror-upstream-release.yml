@@ -1,0 +1,168 @@
+name: Mirror upstream release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Upstream release tag to mirror. Leave empty to use latest upstream release."
+        required: false
+        type: string
+  schedule:
+    # 每天北京时间 05:40 检查官方最新 Release
+    - cron: "40 21 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mirror-upstream-release
+  cancel-in-progress: false
+
+env:
+  UPSTREAM_REPOSITORY: QuantumNous/new-api
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out fork main
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Resolve upstream release
+        id: upstream_release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+
+          if [ -n "${INPUT_TAG}" ]; then
+            gh api "repos/${UPSTREAM_REPOSITORY}/releases/tags/${INPUT_TAG}" > upstream-release.json
+          else
+            gh api "repos/${UPSTREAM_REPOSITORY}/releases/latest" > upstream-release.json
+          fi
+
+          {
+            python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          data = json.loads(Path("upstream-release.json").read_text(encoding="utf-8"))
+          Path("upstream-release-body.md").write_text(data.get("body") or "", encoding="utf-8")
+
+          values = {
+              "tag": data["tag_name"],
+              "name": data.get("name") or data["tag_name"],
+              "html_url": data.get("html_url") or "",
+              "prerelease": "true" if data.get("prerelease") else "false",
+          }
+          for key, value in values.items():
+              safe = str(value).replace("\n", " ")
+              print(f"{key}={safe}")
+          PY
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Fetch upstream tag
+        id: upstream_tag
+        run: |
+          set -euo pipefail
+
+          TAG="${{ steps.upstream_release.outputs.tag }}"
+          git remote add upstream "https://github.com/${UPSTREAM_REPOSITORY}.git"
+          git fetch upstream "refs/tags/${TAG}:refs/upstream-release-tags/${TAG}" --force
+
+          UPSTREAM_TAG_COMMIT="$(git rev-list -n 1 "refs/upstream-release-tags/${TAG}")"
+          UPSTREAM_TAG_OBJECT="$(git rev-parse "refs/upstream-release-tags/${TAG}")"
+
+          echo "commit=${UPSTREAM_TAG_COMMIT}" >> "$GITHUB_OUTPUT"
+          echo "object=${UPSTREAM_TAG_OBJECT}" >> "$GITHUB_OUTPUT"
+
+      - name: Mirror tag into fork
+        id: fork_tag
+        run: |
+          set -euo pipefail
+
+          TAG="${{ steps.upstream_release.outputs.tag }}"
+          UPSTREAM_TAG_COMMIT="${{ steps.upstream_tag.outputs.commit }}"
+
+          git fetch origin "refs/tags/${TAG}:refs/fork-existing-tags/${TAG}" --force || true
+
+          if git rev-parse "refs/fork-existing-tags/${TAG}" >/dev/null 2>&1; then
+            EXISTING_COMMIT="$(git rev-list -n 1 "refs/fork-existing-tags/${TAG}")"
+            if [ "${EXISTING_COMMIT}" != "${UPSTREAM_TAG_COMMIT}" ]; then
+              echo "::error::Fork tag ${TAG} already exists at ${EXISTING_COMMIT}, but upstream tag points to ${UPSTREAM_TAG_COMMIT}. Refusing to retag automatically."
+              exit 1
+            fi
+            echo "created=false" >> "$GITHUB_OUTPUT"
+          else
+            git push origin "refs/upstream-release-tags/${TAG}:refs/tags/${TAG}"
+            echo "created=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create or update fork release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.upstream_release.outputs.tag }}
+          NAME: ${{ steps.upstream_release.outputs.name }}
+          UPSTREAM_URL: ${{ steps.upstream_release.outputs.html_url }}
+          PRERELEASE: ${{ steps.upstream_release.outputs.prerelease }}
+          UPSTREAM_TAG_COMMIT: ${{ steps.upstream_tag.outputs.commit }}
+          UPSTREAM_TAG_OBJECT: ${{ steps.upstream_tag.outputs.object }}
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          upstream_body = Path("upstream-release-body.md").read_text(encoding="utf-8")
+          notes = "\n".join([
+              f"Fork mirror of upstream release **{os.environ['TAG']}**.",
+              "",
+              f"- Upstream release: {os.environ['UPSTREAM_URL']}",
+              f"- Upstream tag object: `{os.environ['UPSTREAM_TAG_OBJECT']}`",
+              f"- Upstream tag commit: `{os.environ['UPSTREAM_TAG_COMMIT']}`",
+              "- This fork release intentionally points to the same tag commit as the official upstream release.",
+              "",
+              "---",
+              "",
+          ]) + upstream_body + "\n"
+          Path("fork-release-notes.md").write_text(notes, encoding="utf-8")
+          PY
+
+          args=("${TAG}" --repo "${GITHUB_REPOSITORY}" --title "${NAME}" --notes-file fork-release-notes.md)
+          if [ "${PRERELEASE}" = "true" ]; then
+            args+=(--prerelease)
+          else
+            args+=(--latest)
+          fi
+
+          if gh release view "${TAG}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            gh release edit "${args[@]}"
+          else
+            gh release create "${args[@]}"
+          fi
+
+      - name: Summary
+        run: |
+          {
+            echo "## Upstream release mirrored"
+            echo
+            echo "- Tag: \`${{ steps.upstream_release.outputs.tag }}\`"
+            echo "- Upstream tag object: \`${{ steps.upstream_tag.outputs.object }}\`"
+            echo "- Upstream tag commit: \`${{ steps.upstream_tag.outputs.commit }}\`"
+            echo "- New tag created: \`${{ steps.fork_tag.outputs.created }}\`"
+            echo
+            echo "The fork release points to the same commit as the official upstream release."
+            echo "The release event will trigger the GHCR image workflow."
+          } >> "$GITHUB_STEP_SUMMARY"
