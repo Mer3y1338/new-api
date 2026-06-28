@@ -13,6 +13,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: mirror-upstream-release
@@ -72,7 +73,7 @@ jobs:
           PY
           } >> "$GITHUB_OUTPUT"
 
-      - name: Fetch upstream tag
+      - name: Fetch upstream release tag
         id: upstream_tag
         run: |
           set -euo pipefail
@@ -82,12 +83,24 @@ jobs:
           git fetch upstream "refs/tags/${TAG}:refs/upstream-release-tags/${TAG}" --force
 
           UPSTREAM_TAG_COMMIT="$(git rev-list -n 1 "refs/upstream-release-tags/${TAG}")"
-          UPSTREAM_TAG_OBJECT="$(git rev-parse "refs/upstream-release-tags/${TAG}")"
+          FORK_MAIN_COMMIT="$(git rev-parse HEAD)"
 
-          echo "commit=${UPSTREAM_TAG_COMMIT}" >> "$GITHUB_OUTPUT"
-          echo "object=${UPSTREAM_TAG_OBJECT}" >> "$GITHUB_OUTPUT"
+          if ! git merge-base --is-ancestor "${UPSTREAM_TAG_COMMIT}" "${FORK_MAIN_COMMIT}"; then
+            {
+              echo "## 官方 Release 对应提交尚未同步"
+              echo
+              echo "官方 Release tag \`${TAG}\` 对应的提交还不在本 fork 的 \`main\` 里。"
+              echo
+              echo "先让上游同步 PR 合并，再重新运行这个 workflow。"
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::error::Fork main does not contain upstream release tag ${TAG}. Sync upstream first."
+            exit 1
+          fi
 
-      - name: Mirror tag into fork
+          echo "upstream_commit=${UPSTREAM_TAG_COMMIT}" >> "$GITHUB_OUTPUT"
+          echo "fork_commit=${FORK_MAIN_COMMIT}" >> "$GITHUB_OUTPUT"
+
+      - name: Create fork tag if needed
         id: fork_tag
         env:
           MIRROR_TOKEN: ${{ secrets.RELEASE_MIRROR_TOKEN || secrets.GITHUB_TOKEN }}
@@ -95,20 +108,21 @@ jobs:
           set -euo pipefail
 
           TAG="${{ steps.upstream_release.outputs.tag }}"
-          UPSTREAM_TAG_COMMIT="${{ steps.upstream_tag.outputs.commit }}"
+          FORK_COMMIT="${{ steps.upstream_tag.outputs.fork_commit }}"
 
           git remote set-url origin "https://x-access-token:${MIRROR_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           git fetch origin "refs/tags/${TAG}:refs/fork-existing-tags/${TAG}" --force || true
 
           if git rev-parse "refs/fork-existing-tags/${TAG}" >/dev/null 2>&1; then
             EXISTING_COMMIT="$(git rev-list -n 1 "refs/fork-existing-tags/${TAG}")"
-            if [ "${EXISTING_COMMIT}" != "${UPSTREAM_TAG_COMMIT}" ]; then
-              echo "::error::Fork tag ${TAG} already exists at ${EXISTING_COMMIT}, but upstream tag points to ${UPSTREAM_TAG_COMMIT}. Refusing to retag automatically."
+            if [ "${EXISTING_COMMIT}" != "${FORK_COMMIT}" ]; then
+              echo "::error::Fork tag ${TAG} already exists at ${EXISTING_COMMIT}, expected fork main ${FORK_COMMIT}. Refusing to retag automatically."
               exit 1
             fi
             echo "created=false" >> "$GITHUB_OUTPUT"
           else
-            git push origin "refs/upstream-release-tags/${TAG}:refs/tags/${TAG}"
+            git tag -a "${TAG}" -m "Fork release ${TAG}" "${FORK_COMMIT}"
+            git push origin "refs/tags/${TAG}"
             echo "created=true" >> "$GITHUB_OUTPUT"
           fi
 
@@ -119,8 +133,8 @@ jobs:
           NAME: ${{ steps.upstream_release.outputs.name }}
           UPSTREAM_URL: ${{ steps.upstream_release.outputs.html_url }}
           PRERELEASE: ${{ steps.upstream_release.outputs.prerelease }}
-          UPSTREAM_TAG_COMMIT: ${{ steps.upstream_tag.outputs.commit }}
-          UPSTREAM_TAG_OBJECT: ${{ steps.upstream_tag.outputs.object }}
+          UPSTREAM_COMMIT: ${{ steps.upstream_tag.outputs.upstream_commit }}
+          FORK_COMMIT: ${{ steps.upstream_tag.outputs.fork_commit }}
         run: |
           set -euo pipefail
 
@@ -130,12 +144,12 @@ jobs:
 
           upstream_body = Path("upstream-release-body.md").read_text(encoding="utf-8")
           notes = "\n".join([
-              f"Fork mirror of upstream release **{os.environ['TAG']}**.",
+              f"这是 CharyeahOwO/new-api 基于官方 **{os.environ['TAG']}** 的定制版发布。",
               "",
-              f"- Upstream release: {os.environ['UPSTREAM_URL']}",
-              f"- Upstream tag object: `{os.environ['UPSTREAM_TAG_OBJECT']}`",
-              f"- Upstream tag commit: `{os.environ['UPSTREAM_TAG_COMMIT']}`",
-              "- This fork release intentionally points to the same tag commit as the official upstream release.",
+              f"- 官方 Release：{os.environ['UPSTREAM_URL']}",
+              f"- 官方 Release 提交：`{os.environ['UPSTREAM_COMMIT']}`",
+              f"- 本 fork 发布提交：`{os.environ['FORK_COMMIT']}`",
+              "- 这个 Release 包含本仓库的前端定制，同时已经合入对应官方 Release 提交。",
               "",
               "---",
               "",
@@ -156,16 +170,22 @@ jobs:
             gh release create "${args[@]}"
           fi
 
+      - name: Dispatch GHCR image build
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_MIRROR_TOKEN || secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.upstream_release.outputs.tag }}
+        run: |
+          gh workflow run build-image.yml --repo "${GITHUB_REPOSITORY}" -f tag="${TAG}"
+
       - name: Summary
         run: |
           {
-            echo "## Upstream release mirrored"
+            echo "## 已镜像官方 Release"
             echo
             echo "- Tag: \`${{ steps.upstream_release.outputs.tag }}\`"
-            echo "- Upstream tag object: \`${{ steps.upstream_tag.outputs.object }}\`"
-            echo "- Upstream tag commit: \`${{ steps.upstream_tag.outputs.commit }}\`"
-            echo "- New tag created: \`${{ steps.fork_tag.outputs.created }}\`"
+            echo "- 官方 Release 提交: \`${{ steps.upstream_tag.outputs.upstream_commit }}\`"
+            echo "- 本 fork 发布提交: \`${{ steps.upstream_tag.outputs.fork_commit }}\`"
+            echo "- 新 tag 创建: \`${{ steps.fork_tag.outputs.created }}\`"
             echo
-            echo "The fork release points to the same commit as the official upstream release."
-            echo "The release event will trigger the GHCR image workflow."
+            echo "Release 和 GHCR 镜像只跟官方 Release 走；上游提交同步仍由 PR workflow 负责。"
           } >> "$GITHUB_STEP_SUMMARY"
