@@ -46,3 +46,8 @@ ChatGPT Image 2026年5月18日 22_14_59.png
 /lll.ttf
 日系可爱奶酪体_爱给网_aigei_com.ttf
 web/default/public/wordmark-luoyin.png
+
+# Local-only live probes and scratch test workspaces.
+.local-tests/
+service/relayconvert/chat_responses_live_local_test.go
+service/openaicompat/chat_responses_live_local_test.go

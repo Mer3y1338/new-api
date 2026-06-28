@@ -17,14 +17,17 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useTranslation } from 'react-i18next'
-import { useAuthStore } from '@/stores/auth-store'
-import { Markdown } from '@/components/ui/markdown'
+
 import { PublicLayout } from '@/components/layout'
 import { Footer } from '@/components/layout/components/footer'
+import { RichContent } from '@/components/rich-content'
 import { LuoyinWordmark } from '@/custom/luoyin/brand'
+import { isLikelyHtml } from '@/lib/content-format'
+import { useAuthStore } from '@/stores/auth-store'
+
 import { Hero } from './components'
-import { useHomeBranding } from './hooks/use-home-branding'
 import { useHomePageContent } from './hooks'
+import { useHomeBranding } from './hooks/use-home-branding'
 
 export function Home() {
   const { t } = useTranslation()
@@ -48,6 +51,23 @@ export function Home() {
   }
 
   if (content) {
+    if (isUrl) {
+      return (
+        <PublicLayout
+          showMainContainer={false}
+          siteName={brandName}
+          logo={<LuoyinWordmark src={wordmarkSrc} />}
+        >
+          <iframe
+            src={content}
+            className='h-screen w-full border-none'
+            title={t('Custom Home Page')}
+            sandbox='allow-forms allow-popups allow-popups-to-escape-sandbox allow-scripts'
+          />
+        </PublicLayout>
+      )
+    }
+
     return (
       <PublicLayout
         showMainContainer={false}
@@ -55,17 +75,13 @@ export function Home() {
         logo={<LuoyinWordmark src={wordmarkSrc} />}
       >
         <main className='overflow-x-hidden'>
-          {isUrl ? (
-            <iframe
-              src={content}
-              className='h-screen w-full border-none'
-              title={t('Custom Home Page')}
+          <div className='mx-auto max-w-6xl px-4 py-8'>
+            <RichContent
+              mode={isLikelyHtml(content) ? 'html' : 'markdown'}
+              content={content}
+              className='custom-home-content'
             />
-          ) : (
-            <div className='container mx-auto py-8'>
-              <Markdown className='custom-home-content'>{content}</Markdown>
-            </div>
-          )}
+          </div>
         </main>
       </PublicLayout>
     )
