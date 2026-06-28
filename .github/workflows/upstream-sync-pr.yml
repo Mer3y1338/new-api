@@ -1072,7 +1072,10 @@ jobs:
           PY
 
           HEAD_REF="${GITHUB_REPOSITORY_OWNER}:${BRANCH}"
-          EXISTING_PR="$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --head "$HEAD_REF" --json number --jq '.[0].number // empty')"
+          EXISTING_PR="$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --head "$BRANCH" --json number --jq '.[0].number // empty')"
+          if [ -z "$EXISTING_PR" ]; then
+            EXISTING_PR="$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --head "$HEAD_REF" --json number --jq '.[0].number // empty')"
+          fi
 
           add_label() {
             local pr_number="$1"
