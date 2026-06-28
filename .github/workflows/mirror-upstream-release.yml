@@ -83,16 +83,8 @@ jobs:
           git fetch upstream "refs/tags/${TAG}:refs/upstream-release-tags/${TAG}" --force
 
           UPSTREAM_TAG_COMMIT="$(git rev-list -n 1 "refs/upstream-release-tags/${TAG}")"
-          RELEASE_COMMIT=""
 
-          while read -r COMMIT; do
-            if git merge-base --is-ancestor "${UPSTREAM_TAG_COMMIT}" "${COMMIT}"; then
-              RELEASE_COMMIT="${COMMIT}"
-              break
-            fi
-          done < <(git rev-list --first-parent --reverse HEAD)
-
-          if [ -z "${RELEASE_COMMIT}" ]; then
+          if ! git merge-base --is-ancestor "${UPSTREAM_TAG_COMMIT}" HEAD; then
             {
               echo "## 官方 Release 对应提交尚未同步"
               echo
@@ -105,7 +97,7 @@ jobs:
           fi
 
           echo "upstream_commit=${UPSTREAM_TAG_COMMIT}" >> "$GITHUB_OUTPUT"
-          echo "fork_commit=${RELEASE_COMMIT}" >> "$GITHUB_OUTPUT"
+          echo "fork_commit=${UPSTREAM_TAG_COMMIT}" >> "$GITHUB_OUTPUT"
 
       - name: Create fork tag if needed
         id: fork_tag
@@ -151,12 +143,12 @@ jobs:
 
           upstream_body = Path("upstream-release-body.md").read_text(encoding="utf-8")
           notes = "\n".join([
-              f"这是 CharyeahOwO/new-api 基于官方 **{os.environ['TAG']}** 的定制版发布。",
+              f"这是 CharyeahOwO/new-api 镜像官方 **{os.environ['TAG']}** 的发布。",
               "",
               f"- 官方 Release：{os.environ['UPSTREAM_URL']}",
               f"- 官方 Release 提交：`{os.environ['UPSTREAM_COMMIT']}`",
-              f"- 本 fork 发布提交：`{os.environ['FORK_COMMIT']}`",
-              "- 这个 Release 包含本仓库的前端定制，同时已经合入对应官方 Release 提交。",
+              f"- 本 fork Release tag 指向同一个提交：`{os.environ['FORK_COMMIT']}`",
+              "- 这个提交存在于本 fork 历史中；Release 节奏跟随官方 Release，而不是跟随 main 的每次提交。",
               "",
               "---",
               "",
