@@ -83,9 +83,16 @@ jobs:
           git fetch upstream "refs/tags/${TAG}:refs/upstream-release-tags/${TAG}" --force
 
           UPSTREAM_TAG_COMMIT="$(git rev-list -n 1 "refs/upstream-release-tags/${TAG}")"
-          FORK_MAIN_COMMIT="$(git rev-parse HEAD)"
+          RELEASE_COMMIT=""
 
-          if ! git merge-base --is-ancestor "${UPSTREAM_TAG_COMMIT}" "${FORK_MAIN_COMMIT}"; then
+          while read -r COMMIT; do
+            if git merge-base --is-ancestor "${UPSTREAM_TAG_COMMIT}" "${COMMIT}"; then
+              RELEASE_COMMIT="${COMMIT}"
+              break
+            fi
+          done < <(git rev-list --first-parent --reverse HEAD)
+
+          if [ -z "${RELEASE_COMMIT}" ]; then
             {
               echo "## 官方 Release 对应提交尚未同步"
               echo
@@ -98,7 +105,7 @@ jobs:
           fi
 
           echo "upstream_commit=${UPSTREAM_TAG_COMMIT}" >> "$GITHUB_OUTPUT"
-          echo "fork_commit=${FORK_MAIN_COMMIT}" >> "$GITHUB_OUTPUT"
+          echo "fork_commit=${RELEASE_COMMIT}" >> "$GITHUB_OUTPUT"
 
       - name: Create fork tag if needed
         id: fork_tag
