@@ -151,13 +151,13 @@ jobs:
 
           upstream_body = Path("upstream-release-body.md").read_text(encoding="utf-8")
           notes = "\n".join([
-              f"这是 CharyeahOwO/new-api 基于官方 **{os.environ['TAG']}** 进度的 fork 发布。",
+              f"Fork release aligned with upstream **{os.environ['TAG']}**.",
               "",
-              f"- 官方 Release：{os.environ['UPSTREAM_URL']}",
-              f"- 官方 Release 提交：`{os.environ['UPSTREAM_COMMIT']}`",
-              f"- 本 fork 发布提交：`{os.environ['FORK_COMMIT']}`",
-              "- 这个提交代表本 fork 已同步到对应官方 Release 进度，同时保留本 fork 当时已有的修改。",
-              "- Release 和镜像只跟官方 Release 节奏走，不跟 main 的每次提交走。",
+              f"- Upstream release: {os.environ['UPSTREAM_URL']}",
+              f"- Upstream release commit: `{os.environ['UPSTREAM_COMMIT']}`",
+              f"- Fork release commit: `{os.environ['FORK_COMMIT']}`",
+              "- This release is cut from the fork state that has synchronized to the corresponding upstream release baseline.",
+              "- Container images are published only for upstream release-aligned fork releases, not for every main branch update.",
               "",
               "---",
               "",
