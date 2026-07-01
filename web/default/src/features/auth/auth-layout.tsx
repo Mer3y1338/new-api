@@ -17,6 +17,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { Link } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
+
 import { LUOYIN_BRAND_NAME, LuoyinWordmark } from '@/custom/luoyin/brand'
 
 type AuthLayoutProps = {
@@ -24,11 +26,13 @@ type AuthLayoutProps = {
 }
 
 export function AuthLayout({ children }: AuthLayoutProps) {
+  const { t } = useTranslation()
+
   return (
     <div className='luoyin-shell luoyin-auth relative grid h-svh max-w-none'>
       <Link
         to='/'
-        aria-label={LUOYIN_BRAND_NAME}
+        aria-label={`${t('Go to home')} - ${LUOYIN_BRAND_NAME}`}
         className='absolute top-4 left-4 z-10 rounded-full border border-white/[0.45] bg-white/[0.72] px-3 py-1.5 shadow-[0_10px_30px_-18px_rgba(30,41,59,0.55),inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-2xl transition-all duration-300 hover:bg-white/[0.82] dark:border-white/[0.16] dark:bg-white/[0.14] sm:top-8 sm:left-8'
       >
         <div className='flex h-8 w-32 items-center justify-center md:w-36'>
