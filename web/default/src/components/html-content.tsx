@@ -156,18 +156,19 @@ function IsolatedHtmlContent(props: {
     const contentTemplate = document.createElement('template')
     contentTemplate.innerHTML = `${isolatedContentBaseStyles}${props.html}`
 
-    shadowRoot.replaceChildren(
-      ...applicationStyleNodes,
-      contentTemplate.content
+    // Tailwind 类选择器无法跨 shadow boundary 匹配 host 上的 class，
+    // 排版类必须挂在 shadow root 内部的包装元素上才会生效
+    const contentWrapper = document.createElement('div')
+    contentWrapper.className = cn(
+      'prose prose-neutral dark:prose-invert max-w-none',
+      props.className
     )
-  }, [props.html])
+    contentWrapper.appendChild(contentTemplate.content)
 
-  return (
-    <div
-      ref={containerRef}
-      className={cn('block w-full', props.className)}
-    />
-  )
+    shadowRoot.replaceChildren(...applicationStyleNodes, contentWrapper)
+  }, [props.html, props.className])
+
+  return <div ref={containerRef} className='block w-full' />
 }
 
 export function HtmlContent(props: HtmlContentProps) {

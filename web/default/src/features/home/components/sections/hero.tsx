@@ -16,7 +16,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { CherryStudio } from '@lobehub/icons'
 import { Link } from '@tanstack/react-router'
 import { ArrowRight, BookOpen } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -31,19 +30,6 @@ interface HeroProps {
   className?: string
   isAuthenticated?: boolean
 }
-
-const MoreIcon = () => (
-  <svg
-    className='text-muted-foreground/60 group-hover:text-foreground size-6 shrink-0 transition-colors'
-    viewBox='0 0 24 24'
-    fill='none'
-    xmlns='http://www.w3.org/2000/svg'
-  >
-    <circle cx='6' cy='12' r='2' fill='currentColor' />
-    <circle cx='12' cy='12' r='2' fill='currentColor' />
-    <circle cx='18' cy='12' r='2' fill='currentColor' />
-  </svg>
-)
 
 export function Hero(props: HeroProps) {
   const { t } = useTranslation()
@@ -169,60 +155,13 @@ export function Hero(props: HeroProps) {
             </>
           )}
         </div>
-
-        <div
-          className='landing-animate-fade-up mt-5 flex flex-wrap items-center justify-center gap-2 opacity-0 [@media(max-width:767px)_and_(max-height:590px)]:hidden md:mt-7'
-          style={{ animationDelay: '290ms' }}
-        >
-          <a
-            href='https://cherry-ai.com'
-            target='_blank'
-            rel='noopener noreferrer'
-            className='group border-border/40 bg-white/[0.72] text-foreground/80 hover:border-border hover:bg-white/[0.86] hover:text-foreground flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium shadow-[0_10px_30px_-18px_rgba(30,41,59,0.55),inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-2xl transition-all duration-300 hover:scale-[1.02] dark:border-white/[0.16] dark:bg-white/[0.14] dark:text-white/[0.82] dark:hover:bg-white/[0.2] dark:hover:text-white'
-          >
-            <CherryStudio.Color size={18} className='shrink-0' />
-            <span>Cherry Studio</span>
-          </a>
-          <a
-            href='https://ccswitch.io'
-            target='_blank'
-            rel='noopener noreferrer'
-            className='group border-border/40 bg-white/[0.72] text-foreground/80 hover:border-border hover:bg-white/[0.86] hover:text-foreground flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium shadow-[0_10px_30px_-18px_rgba(30,41,59,0.55),inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-2xl transition-all duration-300 hover:scale-[1.02] dark:border-white/[0.16] dark:bg-white/[0.14] dark:text-white/[0.82] dark:hover:bg-white/[0.2] dark:hover:text-white'
-          >
-            <img
-              src='https://ccswitch.io/favicon.png'
-              alt='CC Switch'
-              className='size-[18px] shrink-0 rounded object-contain'
-              onError={(e) => {
-                e.currentTarget.style.display = 'none'
-                const fallback = e.currentTarget.nextSibling as HTMLElement
-                if (fallback) fallback.style.display = 'flex'
-              }}
-            />
-            <span
-              style={{ display: 'none' }}
-              className='size-[18px] shrink-0 items-center justify-center rounded bg-blue-500/10 text-[9px] font-bold text-blue-600 dark:bg-blue-400/10 dark:text-blue-400'
-            >
-              CC
-            </span>
-            <span>CC Switch</span>
-          </a>
-          <div className='group border-border/40 bg-white/[0.72] text-foreground/60 hover:border-border hover:bg-white/[0.86] hover:text-foreground flex cursor-default items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium shadow-[0_10px_30px_-18px_rgba(30,41,59,0.55),inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-2xl transition-all duration-300 hover:scale-[1.02] dark:border-white/[0.16] dark:bg-white/[0.14] dark:text-white/[0.68] dark:hover:bg-white/[0.2] dark:hover:text-white'>
-            <MoreIcon />
-            <span>{t('More Apps')}</span>
-          </div>
-        </div>
       </div>
 
       <div
-        className='landing-animate-fade-up w-full opacity-0 [@media(max-width:767px)_and_(max-height:430px)]:hidden'
-        style={{ animationDelay: '360ms' }}
+        className='landing-animate-fade-up w-full opacity-0'
+        style={{ animationDelay: '320ms' }}
       >
-        <HeroTerminalDemo
-          baseUrl={branding.baseUrl}
-          displayHost={branding.displayHost}
-          endpoints={branding.endpoints}
-        />
+        <HeroTerminalDemo />
       </div>
     </section>
   )
