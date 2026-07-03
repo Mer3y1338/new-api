@@ -81,12 +81,12 @@ jobs:
           ensure_label "risk-medium" "bf8700" "Medium risk upstream sync"
           ensure_label "risk-high" "d1242f" "High risk upstream sync"
           ensure_label "ai-repaired" "5319e7" "Merge conflicts were repaired by the AI runner"
-          ensure_label "touches-luoyin" "d93f0b" "Touches local LuoYin frontend customization"
+          ensure_label "touches-luoyin" "d93f0b" "Touches the locked local root homepage"
           ensure_label "touches-web-default" "1d76db" "Touches the default frontend"
           ensure_label "touches-web-classic" "006b75" "Touches the classic frontend"
           ensure_label "touches-frontend-deps" "fbca04" "Touches frontend dependencies or lockfiles"
           ensure_label "touches-workflow" "c5def5" "Touches GitHub Actions or workflow files"
-          ensure_label "backend-ignored" "6e7781" "Backend changes are intentionally ignored by this frontend-focused sync policy"
+          ensure_label "backend-ignored" "6e7781" "Backend changes follow upstream without custom review"
 
       - name: Add and fetch upstream
         run: |
@@ -170,7 +170,6 @@ jobs:
 
           files_text = Path("upstream-review/files.txt").read_text(errors="replace").splitlines()
 
-          entries = []
           paths = []
 
           for line in files_text:
@@ -185,10 +184,21 @@ jobs:
               else:
                   file_paths = parts[1:]
 
-              entries.append((status, file_paths))
               paths.extend(file_paths)
 
           unique_paths = sorted(set(paths))
+
+          locked_homepage_prefixes = (
+              "web/default/src/features/home/",
+              "web/default/src/custom/luoyin/",
+          )
+          locked_homepage_files = {
+              "web/default/src/routes/index.tsx",
+              "web/default/public/wordmark-luoyin.svg",
+          }
+
+          def is_locked_homepage_path(path):
+              return path in locked_homepage_files or path.startswith(locked_homepage_prefixes)
 
           def has_prefix(*prefixes):
               return any(path.startswith(prefixes) for path in unique_paths)
@@ -198,10 +208,6 @@ jobs:
 
           def has_suffix(*suffixes):
               return any(path.endswith(suffixes) for path in unique_paths)
-
-          def path_contains_any(*needles):
-              lowered = [path.lower() for path in unique_paths]
-              return any(any(needle.lower() in path for needle in needles) for path in lowered)
 
           root_doc_files = {"README.md", "CHANGELOG.md", "CONTRIBUTING.md", "SECURITY.md", "LICENSE"}
           docs_suffixes = (".md", ".mdx", ".txt")
@@ -222,8 +228,7 @@ jobs:
           impact = {
               "web_default": has_prefix("web/default/"),
               "web_classic": has_prefix("web/classic/"),
-              "luoyin": path_contains_any("luoyin", "洛音", "云枢", "luotianyi")
-                  or has_prefix("web/default/src/custom/luoyin/"),
+              "luoyin": any(is_locked_homepage_path(path) for path in unique_paths),
               "workflow": has_prefix(".github/workflows/"),
               "frontend_dependency": has_exact("web/default/package.json", "web/default/bun.lock")
                   or has_suffix("package.json", "bun.lock", "pnpm-lock.yaml", "package-lock.json", "yarn.lock"),
@@ -232,40 +237,18 @@ jobs:
               "backend_ignored": has_prefix(*ignored_backend_prefixes) or has_exact("go.mod", "go.sum"),
           }
 
-          high_risk_frontend_files = {
-              "web/default/src/main.tsx",
-              "web/default/src/App.tsx",
-              "web/default/src/router.tsx",
-              "web/default/src/routes.tsx",
-              "web/default/src/index.css",
-              "web/default/src/styles/index.css",
-              "web/default/src/styles/theme.css",
-              "web/default/src/lib/theme-customization.ts",
-              "web/default/tailwind.config.js",
-              "web/default/tailwind.config.ts",
-              "web/default/package.json",
-              "web/default/bun.lock",
-              ".github/workflows/upstream-sync-pr.yml",
-          }
-
-          has_high_risk_frontend_path = any(path in high_risk_frontend_files for path in unique_paths)
-          has_deleted_frontend = any(
-              status.startswith("D") and any(path.startswith(("web/default/", "web/classic/")) for path in file_paths)
-              for status, file_paths in entries
-          )
-
           if docs_only:
               risk = "LOW"
-              reason = "Only documentation changed; backend is ignored by sync policy."
-          elif impact["luoyin"] or has_high_risk_frontend_path or has_deleted_frontend or impact["workflow"] or impact["frontend_dependency"]:
+              reason = "Only documentation changed; it follows upstream."
+          elif impact["luoyin"]:
               risk = "HIGH"
-              reason = "High-impact frontend/theme/workflow/dependency files changed; backend paths are intentionally ignored."
-          elif impact["web_default"] or impact["web_classic"] or impact["frontend_build"]:
+              reason = "Upstream touched the locked root homepage; those upstream homepage changes will be discarded."
+          elif impact["workflow"]:
               risk = "MEDIUM"
-              reason = "Frontend files changed; merge/combine upstream unless it overwrites local frontend customization."
+              reason = "Workflow files changed; application code still follows upstream outside the locked root homepage."
           else:
               risk = "LOW"
-              reason = "No frontend/theme/workflow/dependency risk paths detected; backend-only changes are ignored by policy and should be merged."
+              reason = "Changes are outside the locked root homepage and should follow upstream."
 
           label = {
               "LOW": "risk-low",
@@ -276,7 +259,7 @@ jobs:
           module_lines = [
               f"- web/default: {'yes' if impact['web_default'] else 'no'}",
               f"- web/classic: {'yes' if impact['web_classic'] else 'no'}",
-              f"- luoyin theme/customization: {'yes' if impact['luoyin'] else 'no'}",
+              f"- locked root homepage: {'yes' if impact['luoyin'] else 'no'}",
               f"- frontend build/assets: {'yes' if impact['frontend_build'] else 'no'}",
               f"- frontend dependencies: {'yes' if impact['frontend_dependency'] else 'no'}",
               f"- GitHub Actions: {'yes' if impact['workflow'] else 'no'}",
@@ -284,16 +267,15 @@ jobs:
               f"- docs only: {'yes' if docs_only else 'no'}",
           ]
 
-          merge_advice = "需要结合" if risk == "HIGH" else "可以合并"
+          merge_advice = "可以合并"
 
           miya_summary = {
               "schema": "newapi-upstream-sync-v1",
               "policy": {
-                  "owner_changes_scope": "frontend-only",
-                  "backend_review": "ignored-by-policy",
-                  "allowed_resolution": ["merge", "combine"],
-                  "discard_upstream_allowed": False,
-                  "default_rule": "merge official upstream frontend changes unless they conflict with local frontend customization; combine on conflicts",
+                  "owner_changes_scope": "root-homepage-only",
+                  "locked_route": "/",
+                  "locked_paths": sorted(locked_homepage_files | set(locked_homepage_prefixes)),
+                  "default_rule": "keep the local root homepage unchanged; follow upstream everywhere else, including /about, admin, web/classic, and backend",
               },
               "decision": {
                   "risk": risk,
@@ -308,8 +290,7 @@ jobs:
                   "truncated": len(unique_paths) > 80,
               },
               "recommended_checks": [
-                  "web/default typecheck" if impact["web_default"] else "frontend smoke check if UI changed",
-                  "web/default build" if impact["web_default"] or impact["frontend_dependency"] else "none",
+                  "confirm root homepage files match origin target" if impact["luoyin"] else "none",
               ],
           }
 
@@ -325,8 +306,8 @@ jobs:
               f"- Label: {label}",
               f"- Merge advice: {merge_advice}",
               f"- Reason: {reason}",
-              "- Backend policy: ignored; MuLing only maintains frontend customization on this fork.",
-              "- Conflict policy: only merge or combine; never discard upstream updates.",
+              "- Local customization scope: only the root route `/` homepage.",
+              "- Sync policy: discard upstream changes to the locked homepage; follow upstream everywhere else, including `/about`, admin, web/classic, and backend.",
               "",
               "### Module signals",
               *module_lines,
@@ -462,15 +443,14 @@ jobs:
             You are repairing an upstream merge conflict in this GitHub Actions job.
 
             Requirements:
-            - MuLing only maintains frontend customization in this fork. Treat backend changes as upstream-owned and do not perform backend review or redesign.
+            - The only local customization is the root route `/` homepage.
             - First inspect the latest commit on this branch, then inspect adjacent code only as needed.
             - Only resolve files listed by `git diff --name-only --diff-filter=U`.
             - Do not modify unrelated files.
             - Remove every conflict marker: `<<<<<<<`, `=======`, `>>>>>>>`.
-            - There are only two valid conflict resolutions: merge both sides or combine both sides. There is no valid option that discards upstream updates.
-            - For frontend conflicts, preserve local “洛音云枢” brand, footer/legal links/project attribution, theme customization, and i18n customization, while integrating upstream frontend fixes/features around it.
-            - For backend conflicts, keep upstream behavior and mechanically combine local context only when required to compile; do not analyze, rewrite, or optimize backend logic.
-            - Official upstream frontend changes that do not conflict with local customization should be accepted.
+            - For `web/default/src/routes/index.tsx`, `web/default/src/features/home/**`, `web/default/src/custom/luoyin/**`, and `web/default/public/wordmark-luoyin.svg`, keep the local branch version exactly and discard upstream changes.
+            - For every other file, follow upstream. This includes `/about`, admin pages, web/classic, dependencies, workflows, and backend.
+            - In shared files, preserve only lines required by the locked root homepage and otherwise follow upstream.
             - Do not force push.
             - Do not change secrets, environment variables, deploy keys, credentials, or release tokens.
             - Do not perform broad refactors.
@@ -568,6 +548,23 @@ jobs:
           echo "::error::Merge conflict detected in more than 20 files. Automatic repair was not attempted."
           exit 1
 
+      - name: Restore locked root homepage
+        if: steps.changes.outputs.has_changes == 'true' && (steps.merge.outputs.merge_conflict != 'true' || steps.repair_validation.outputs.resolved == 'true') && env.DRY_RUN != 'true'
+        run: |
+          LOCKED_HOMEPAGE_PATHS=(
+            "web/default/src/routes/index.tsx"
+            "web/default/src/features/home"
+            "web/default/src/custom/luoyin"
+            "web/default/public/wordmark-luoyin.svg"
+          )
+
+          git restore --source "origin/${TARGET_BRANCH}" -- "${LOCKED_HOMEPAGE_PATHS[@]}"
+
+          if ! git diff --quiet -- "${LOCKED_HOMEPAGE_PATHS[@]}"; then
+            git add -- "${LOCKED_HOMEPAGE_PATHS[@]}"
+            git commit -m "chore: keep local root homepage"
+          fi
+
       - name: Push sync branch
         if: steps.changes.outputs.has_changes == 'true' && (steps.merge.outputs.merge_conflict != 'true' || steps.repair_validation.outputs.resolved == 'true') && env.DRY_RUN != 'true'
         run: |
@@ -587,7 +584,7 @@ jobs:
           metadata = Path("upstream-review/metadata.txt").read_text(errors="replace")
           commits = Path("upstream-review/commits.txt").read_text(errors="replace")
           summary = "\n".join([
-              "# Frontend-scoped upstream review input",
+              "# Root-homepage-scoped upstream review input",
               "",
               metadata,
               "",
@@ -597,77 +594,35 @@ jobs:
           impact = Path("upstream-review/impact.md").read_text(errors="replace")
           files = Path("upstream-review/frontend-files.txt").read_text(errors="replace")
           if not files.strip():
-              files = "(No frontend/workflow files changed; backend paths are ignored by policy.)\n"
+              files = "(No frontend/workflow files changed.)\n"
           diff = Path("upstream-review/frontend-diff-truncated.patch").read_text(errors="replace")
           if not diff.strip():
-              diff = "(No frontend/workflow diff provided; backend diff is intentionally omitted by policy.)\n"
+              diff = "(No frontend/workflow diff provided.)\n"
 
           prompt = dedent(f"""
           你是这个 GitHub Actions 里的 Claude Code 上游同步审查 agent。
 
-          你的目标：在完整仓库中进行一次“前端范围限定”的代码审查，然后把最终报告写入 `upstream-review/ai-review.md`。
+          只读审查，最终只写 `upstream-review/ai-review.md`。
 
-          核心规则，必须遵守：
-          - 慕棱明确只维护这个 fork 的前端自定义；不要审查后端，不要给后端风险结论，不要建议后端修复。
-          - 上游更新的默认策略是能合就合；官方前端更新只要不冲突本地自定义就接受。
-          - 冲突解决只有两个选项：合并、结合。没有放弃上游更新、粗暴 ours/theirs、丢弃官方改动这个选项。
-          - 如果涉及后端路径，只写“后端按政策忽略，默认跟随上游”，不要继续展开。
-          - 优先查看当前分支最新提交，再按需查看相邻前端代码上下文。
-          - 只读审查，不要修改业务代码、配置、依赖、锁文件或 workflow。
-          - 优先阅读 frontend changed files；为了确认主题影响，可以查看相关前端文件。
-          - 不要读取 dist/build/vendor/node_modules。
-          - 不要运行全量测试、构建、安装依赖、联网命令或格式化命令。
-          - 允许使用 `git diff`、`git show`、`git grep`、`rg`、`sed`、`head`、`wc` 做小范围检查。
-          - 你的最终动作只能写入 `upstream-review/ai-review.md`。
-          - 如果信息不足，明确写“不确定”，不要编造。
+          规则：
+          - 本地唯一自定义是根路由 `/` 主页。
+          - 锁定 `web/default/src/routes/index.tsx`、`web/default/src/features/home/**`、`web/default/src/custom/luoyin/**`、`web/default/public/wordmark-luoyin.svg`；上游对这些路径的修改一律忽略。
+          - `/about`、后台管理、web/classic、依赖、workflow、后端全部跟随上游，不得当成本地自定义。
+          - 共享文件只保留根主页必需的本地代码，其余跟上游。
+          - 不修改代码，不构建，不联网；信息不足就写“不确定”。
 
-          审查重点：
-          - 是否影响我的自定义主题“洛音云枢”。
-          - web/default、web/classic 是否被触及。
-          - 官方前端更新是否能直接合并，还是需要和本地主题结合。
-          - Docker、GitHub Actions、前端依赖锁、前端构建流程是否被触及。
-          - 后端路径不要审查；只按政策说明已忽略。
-
-          输出格式必须严格如下，且整体尽量短：
-
-          Codex审查：用 1 句话总结本次 upstream 更新的前端性质、主要风险、是否需要维护者跟进。
-
-          合并建议：只能选择一个：可以合并 / 需要结合。后面用一句话说明原因。不要输出拒绝合并、放弃上游、丢弃官方改动这类结论。
-
-          更新文件：
-          - 用 3 到 8 条列出主要前端更新模块和关键文件。
-          - 如果文件很多，只列高风险或代表性文件。
-          - 必须说明是否影响 web/default、web/classic、洛音云枢、前端依赖/构建/workflow。
-          - 如果有后端文件，只写“后端路径按政策忽略，默认跟随上游”。
-
-          下一步：
-          用 1 到 2 句话说明 Miya/维护者下一步最应该做什么。
-
+          输出：
+          Codex审查：一句话结论。
+          合并建议：可以合并。根主页保持本地，其余跟随上游。
+          更新文件：最多 5 条。
+          下一步：确认根主页未变。
           Codex审查报告：
-
           ## 风险等级
-
-          LOW / MEDIUM / HIGH，只能选一个，并说明前端原因。
-
-          ## 我查看了什么
-
-          列出你实际读取/搜索过的前端文件或命令，不超过 10 条。不要列后端文件。
-
-          ## 影响范围
-
-          简短说明洛音云枢主题、web/default、web/classic、前端依赖/构建/workflow 的影响；后端写“按政策忽略”。
-
-          ## 重点文件
-
-          只分析最重要的前端文件或模块，不要逐个展开所有低风险文件。
-
-          ## 手动检查
-
-          给出具体前端 checklist。
-
-          ## 验证步骤
-
-          给出最短可执行前端验证顺序。
+          LOW / MEDIUM / HIGH，只说根主页保护风险。
+          ## 主页保护
+          说明锁定路径是否被上游触及。
+          ## 其余同步
+          简短说明其他内容已跟随上游。
 
           ---
 
@@ -727,15 +682,15 @@ jobs:
           if os.environ.get("SKIP_AI_REVIEW") == "true":
               status = "skipped"
               review = f"""
-              Codex审查：本次 workflow_dispatch 选择跳过 AI 审查，请按前端范围查看同步信息后决定是否合并。
+              Codex审查：本次跳过 AI 审查；根路由主页锁定，其余跟随上游。
 
-              合并建议：需要结合。原因是没有运行 repo-aware 前端审查。
+              合并建议：可以合并。工作流会强制还原本地根主页。
 
               更新文件：
-              - 见同步信息中的 changed files；后端路径按政策忽略，默认跟随上游。
+              - 见同步信息中的 changed files；除根主页外全部跟随上游。
 
               下一步：
-              请检查 changed files 中的前端、主题、workflow、前端依赖/构建相关变更，确认没有覆盖洛音云枢自定义。
+              确认根路由主页锁定路径未变。
 
               Codex审查报告：
 
@@ -750,7 +705,7 @@ jobs:
               ## 手动检查
 
               - [ ] 检查 changed files。
-              - [ ] 检查是否影响 web/default、web/classic、洛音云枢主题、前端依赖/构建或 workflow。
+              - [ ] 确认根路由主页锁定路径未变。
 
               ---
 
@@ -759,15 +714,15 @@ jobs:
           elif not review_path.exists() or not review_path.read_text(encoding="utf-8", errors="replace").strip():
               status = "failed"
               review = f"""
-              Codex审查：Claude Code repo-aware 前端审查没有产出报告，请展开同步信息按前端范围确认。
+              Codex审查：Claude Code 没有产出报告；根路由主页仍由工作流强制保留。
 
-              合并建议：需要结合。原因是自动审查失败，但同步分支已经生成。
+              合并建议：可以合并。除根主页外全部跟随上游。
 
               更新文件：
-              - 见同步信息中的 changed files；后端路径按政策忽略，默认跟随上游。
+              - 见同步信息中的 changed files。
 
               下一步：
-              请检查前端、主题、workflow、前端依赖/构建相关 changed files；必要时重新运行 workflow。
+              确认根路由主页锁定路径未变。
 
               Codex审查报告：
 
@@ -782,7 +737,7 @@ jobs:
               ## 手动检查
 
               - [ ] 检查 changed files。
-              - [ ] 检查是否影响 web/default、web/classic、洛音云枢主题、前端依赖/构建或 workflow。
+              - [ ] 确认根路由主页锁定路径未变。
 
               ---
 
@@ -912,7 +867,7 @@ jobs:
                   "reason": os.environ.get("IMPACT_REASON") or miya_summary.get("decision", {}).get("reason", ""),
               },
               "touches": {
-                  "luoyin_theme": env_bool("TOUCHES_LUOYIN"),
+                  "locked_root_homepage": env_bool("TOUCHES_LUOYIN"),
                   "web_default": env_bool("TOUCHES_WEB_DEFAULT"),
                   "web_classic": env_bool("TOUCHES_WEB_CLASSIC"),
                   "frontend_dependencies": env_bool("TOUCHES_FRONTEND_DEPS"),
@@ -925,7 +880,7 @@ jobs:
                   "Read this JSON first",
                   "Check live upstream freshness before merge",
                   "Inspect AI repair files only if ai_repaired_conflicts is true",
-                  "Ignore backend by policy; this fork only protects frontend customization",
+                  "Keep the locked root homepage local; follow upstream everywhere else",
               ],
           })
 
@@ -942,7 +897,7 @@ jobs:
               sync_result = "有冲突，已由 Claude Code 自动修复" if repair_info.get("ai_repaired_conflicts") else "有冲突，自动修复未完成"
               repair_detail = f"{repair_info.get('conflict_count', 0)} 个冲突文件"
           else:
-              sync_result = "无冲突，单纯合并 upstream/main"
+              sync_result = "无冲突，合并 upstream/main 并锁定根主页"
               repair_detail = "未进行冲突修复"
 
           def mark(value):
@@ -956,12 +911,12 @@ jobs:
               f"| 合并建议 | **{decision.get('merge_advice', '可以合并')}** |",
               f"| 风险等级 | `{decision.get('risk', 'UNKNOWN')}` |",
               f"| 主要原因 | {decision.get('reason', '')} |",
-              f"| 洛音云枢 | {mark(touches.get('luoyin_theme'))} |",
+              f"| 根路由 `/` 主页 | {mark(touches.get('locked_root_homepage'))} |",
               f"| web/default | {mark(touches.get('web_default'))} |",
               f"| web/classic | {mark(touches.get('web_classic'))} |",
               f"| 前端依赖 / workflow | {mark(touches.get('frontend_dependencies') or touches.get('workflow'))} |",
               f"| AI 修冲突 | {mark(repair_info.get('ai_repaired_conflicts'))} |",
-              "| 后端 | 按政策忽略，默认跟随上游 |",
+              "| 后端 | 跟随上游 |",
           ])
 
           body = dedent(f"""\
@@ -1031,8 +986,8 @@ jobs:
 
           - 从官方 `upstream/{target_branch}` 拉取新提交。
           - 在 `{target_branch}` 的同步分支上尝试合并 upstream。
-          - 只按前端自定义范围生成影响分析和 Codex 审查。
-          - 如果出现冲突，AI 只允许“合并”或“结合”，不能丢弃上游更新。
+          - 强制从 fork 主分支还原根路由 `/` 主页锁定文件。
+          - `/about`、后台管理、web/classic、依赖、workflow 和后端全部跟随上游。
           - Workflow 会在创建或更新 PR 后自动合并。
 
           </details>
