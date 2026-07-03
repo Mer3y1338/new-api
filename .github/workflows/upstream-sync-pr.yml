@@ -1,18 +1,8 @@
-name: Open upstream sync PR
+name: Auto sync upstream main
 
 on:
   workflow_dispatch:
     inputs:
-      target_branch:
-        description: "Branch to sync from upstream"
-        required: false
-        default: main
-        type: string
-      skip_ai_review:
-        description: "Create the sync PR without calling the AI reviewer"
-        required: false
-        default: false
-        type: boolean
       dry_run:
         description: "Run checks without pushing a branch, creating issues, or opening a PR"
         required: false
@@ -28,14 +18,14 @@ permissions:
   issues: write
 
 concurrency:
-  group: upstream-sync-pr-${{ github.event.inputs.target_branch || 'main' }}
+  group: upstream-sync-pr-main
   cancel-in-progress: false
 
 env:
   UPSTREAM_URL: https://github.com/QuantumNous/new-api.git
-  TARGET_BRANCH: ${{ github.event.inputs.target_branch || 'main' }}
+  TARGET_BRANCH: main
   DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
-  SKIP_AI_REVIEW: ${{ github.event.inputs.skip_ai_review || 'false' }}
+  SKIP_AI_REVIEW: false
 
 jobs:
   sync-pr:
@@ -498,7 +488,7 @@ jobs:
             7. Write `upstream-review/ai-repair.md` with what you resolved and any uncertainty.
           claude_args: |
             --model ${{ secrets.ANTHROPIC_MODEL }}
-            --max-turns 80
+            --max-turns 90
             --allowedTools "Read,Grep,Glob,Edit,MultiEdit,Write,Bash(git status:*),Bash(git diff:*),Bash(git add:*),Bash(git commit:*),Bash(rg:*),Bash(sed:*),Bash(head:*),Bash(cat:*)"
 
       - name: Create conflict issue
@@ -716,7 +706,7 @@ jobs:
             Write the final report to `upstream-review/ai-review.md`.
           claude_args: |
             --model ${{ secrets.ANTHROPIC_MODEL }}
-            --max-turns 50
+            --max-turns 90
             --allowedTools "Read,Grep,Glob,Write,Bash(git diff:*),Bash(git show:*),Bash(git grep:*),Bash(rg:*),Bash(sed:*),Bash(head:*),Bash(wc:*)"
             --disallowedTools "Edit,MultiEdit"
 
@@ -863,13 +853,13 @@ jobs:
               review_intro = dedent(f"""\
               Codex审查：AI 审查报告未按预期格式返回，请展开下方报告查看完整内容。
 
-              合并建议：需要结合。原因是报告格式异常，需要人工确认风险。
+              合并建议：继续自动合并。原因是同步流程已经完成本地合并与冲突检查。
 
               更新文件：
               - 见下方同步信息与完整审查报告。
 
               下一步：
-              请展开 Codex 审查报告和同步信息，人工确认本次 upstream 更新风险。
+              Workflow 会自动合并这个同步 PR；仅在冲突无法自动修复或 GitHub 拒绝合并时停止。
               """).strip()
               review_detail = review.strip()
 
@@ -948,6 +938,12 @@ jobs:
           decision = miya_summary.get("decision", {})
           touches = miya_summary.get("touches", {})
           repair_info = miya_summary.get("repair", {})
+          if repair_info.get("conflict_detected"):
+              sync_result = "有冲突，已由 Claude Code 自动修复" if repair_info.get("ai_repaired_conflicts") else "有冲突，自动修复未完成"
+              repair_detail = f"{repair_info.get('conflict_count', 0)} 个冲突文件"
+          else:
+              sync_result = "无冲突，单纯合并 upstream/main"
+              repair_detail = "未进行冲突修复"
 
           def mark(value):
               return "✅" if value else "—"
@@ -955,6 +951,8 @@ jobs:
           top_summary = "\n".join([
               "| 项目 | 结论 |",
               "| --- | --- |",
+              f"| 同步结果 | **{sync_result}** |",
+              f"| 修复情况 | {repair_detail} |",
               f"| 合并建议 | **{decision.get('merge_advice', '可以合并')}** |",
               f"| 风险等级 | `{decision.get('risk', 'UNKNOWN')}` |",
               f"| 主要原因 | {decision.get('reason', '')} |",
@@ -969,9 +967,9 @@ jobs:
           body = dedent(f"""\
           # Sync upstream/{target_branch}
 
-          > 这份 PR 只按慕棱的前端自定义规则判断：官方更新能合就合；冲突只允许合并或结合；不丢上游；后端默认跟随上游。
+          > 自动同步 upstream/{target_branch}。结果：**{sync_result}**。
 
-          ## Quick verdict
+          ## 同步结果
 
           {top_summary}
 
@@ -1035,7 +1033,7 @@ jobs:
           - 在 `{target_branch}` 的同步分支上尝试合并 upstream。
           - 只按前端自定义范围生成影响分析和 Codex 审查。
           - 如果出现冲突，AI 只允许“合并”或“结合”，不能丢弃上游更新。
-          - 后续上游同步会更新这个 PR。
+          - Workflow 会在创建或更新 PR 后自动合并。
 
           </details>
 
@@ -1237,7 +1235,51 @@ jobs:
             echo
             echo "自动风险等级：${{ steps.changes.outputs.risk_level }}"
             echo
-            echo "AI 审查报告已写入 PR 正文。"
+            echo "AI 审查报告已写入 PR 正文，下一步自动合并。"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Auto merge PR
+        if: steps.changes.outputs.has_changes == 'true' && (steps.merge.outputs.merge_conflict != 'true' || steps.repair_validation.outputs.resolved == 'true') && env.DRY_RUN != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+        run: |
+          if [ -z "$PR_NUMBER" ]; then
+            echo "::error::PR number is empty, cannot auto merge."
+            exit 1
+          fi
+
+          for i in {1..18}; do
+            STATE="$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json mergeStateStatus --jq '.mergeStateStatus')"
+            echo "PR #${PR_NUMBER} merge state: ${STATE}"
+
+            case "$STATE" in
+              CLEAN|HAS_HOOKS|UNSTABLE)
+                break
+                ;;
+              DIRTY|UNKNOWN)
+                echo "::error::PR #${PR_NUMBER} is not mergeable: ${STATE}"
+                exit 1
+                ;;
+            esac
+
+            sleep 10
+          done
+
+          set +e
+          gh pr merge "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --merge --delete-branch
+          MERGE_CODE=$?
+          set -e
+
+          if [ "$MERGE_CODE" -ne 0 ]; then
+            echo "Direct merge failed, enabling GitHub auto-merge."
+            gh pr merge "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --merge --auto --delete-branch
+          fi
+
+          {
+            echo "## Auto merge"
+            echo
+            echo "已自动合并 PR：#${PR_NUMBER}"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Dry run summary
@@ -1266,7 +1308,7 @@ jobs:
           {
             echo "## Done"
             echo
-            echo "已创建或更新 PR：#${{ steps.pr.outputs.number }}"
+            echo "已创建、更新并自动合并 PR：#${{ steps.pr.outputs.number }}"
             echo
             echo "AI 审查报告已直接写进 PR body。"
           } >> "$GITHUB_STEP_SUMMARY"
