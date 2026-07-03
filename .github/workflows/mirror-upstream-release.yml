@@ -80,7 +80,8 @@ jobs:
 
           TAG="${{ steps.upstream_release.outputs.tag }}"
           git remote add upstream "https://github.com/${UPSTREAM_REPOSITORY}.git"
-          git fetch upstream "refs/tags/${TAG}:refs/upstream-release-tags/${TAG}" --force
+          # --no-tags 防止 tag auto-follow 把 refs/tags/${TAG} 顺带建到本地，导致后面 git tag -a 冲突
+          git fetch upstream "refs/tags/${TAG}:refs/upstream-release-tags/${TAG}" --force --no-tags
 
           UPSTREAM_TAG_COMMIT="$(git rev-list -n 1 "refs/upstream-release-tags/${TAG}")"
           RELEASE_COMMIT=""
@@ -111,6 +112,7 @@ jobs:
         id: fork_tag
         env:
           MIRROR_TOKEN: ${{ secrets.RELEASE_MIRROR_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.RELEASE_MIRROR_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
 
@@ -118,22 +120,35 @@ jobs:
           FORK_COMMIT="${{ steps.upstream_tag.outputs.fork_commit }}"
 
           git remote set-url origin "https://x-access-token:${MIRROR_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-          git fetch origin "refs/tags/${TAG}:refs/fork-existing-tags/${TAG}" --force || true
+          git fetch origin "refs/tags/${TAG}:refs/fork-existing-tags/${TAG}" --force --no-tags || true
 
           if git rev-parse "refs/fork-existing-tags/${TAG}" >/dev/null 2>&1; then
             EXISTING_COMMIT="$(git rev-list -n 1 "refs/fork-existing-tags/${TAG}")"
             if [ "${EXISTING_COMMIT}" != "${FORK_COMMIT}" ]; then
-              echo "::error::Fork tag ${TAG} already exists at ${EXISTING_COMMIT}, expected fork main ${FORK_COMMIT}. Refusing to retag automatically."
-              exit 1
+              # tag 已被手工调整过（例如指向专门的 release commit），尊重现状，不自动重打
+              echo "::warning::Fork tag ${TAG} exists at ${EXISTING_COMMIT} (expected ${FORK_COMMIT}); keeping the existing tag."
             fi
             echo "created=false" >> "$GITHUB_OUTPUT"
+
+            if gh release view "${TAG}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              {
+                echo "## 官方 Release 已镜像"
+                echo
+                echo "Fork tag \`${TAG}\` 和对应 Release 都已存在，本次无事可做。"
+              } >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "skip=false" >> "$GITHUB_OUTPUT"
+            fi
           else
-            git tag -a "${TAG}" -m "Fork release ${TAG}" "${FORK_COMMIT}"
+            git tag -fa "${TAG}" -m "Fork release ${TAG}" "${FORK_COMMIT}"
             git push origin "refs/tags/${TAG}"
             echo "created=true" >> "$GITHUB_OUTPUT"
+            echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Create or update fork release
+        if: steps.fork_tag.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ secrets.RELEASE_MIRROR_TOKEN || secrets.GITHUB_TOKEN }}
           TAG: ${{ steps.upstream_release.outputs.tag }}
@@ -179,6 +194,7 @@ jobs:
           fi
 
       - name: Dispatch GHCR image build
+        if: steps.fork_tag.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ secrets.RELEASE_MIRROR_TOKEN || secrets.GITHUB_TOKEN }}
           TAG: ${{ steps.upstream_release.outputs.tag }}
@@ -186,6 +202,7 @@ jobs:
           gh workflow run build-image.yml --repo "${GITHUB_REPOSITORY}" -f tag="${TAG}"
 
       - name: Summary
+        if: steps.fork_tag.outputs.skip != 'true'
         run: |
           {
             echo "## 已镜像官方 Release"
