@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#faf9f5" />
     <title>Mer3y Sense</title>
-    <meta name="description" content="Mer3y Sense — AI 编程工具统一网关。" />
+    <meta name="description" content="Mer3y Sense — 聚合 GPT、Claude、Gemini、Grok 的统一 LLM API 网关。" />
     <link rel="icon" type="image/svg+xml" href="./assets/Mer3ylogo.svg" />
     <link rel="preload" href="./assets/fonts/TiemposText/TiemposText-Regular.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="./assets/fonts/StyreneA/StyreneA-Regular.woff2" as="font" type="font/woff2" crossorigin />
@@ -65,15 +65,15 @@
     <main class="slide-deck">
       <section class="snap-section hero-section" id="home" data-section="home">
         <div class="hero-content">
-          <p class="kicker">AI Coding Gateway</p>
+          <p class="kicker">LLM API Gateway</p>
           <h1>
             <span class="welcome-text">欢迎使用</span>
             <span class="type-wrap"><span id="typewriter"></span><span class="cursor">_</span></span>
           </h1>
           <p class="hero-copy">
-            一个 API key，多个 AI 编程终端<br />
-            <span class="desktop-copy">Claude Code · Codex CLI · Gemini CLI，同一个入口</span>
-            <span class="mobile-copy">Claude Code · Codex CLI ·<br />Gemini CLI，同一个入口</span>
+            聚合 GPT · Claude · Gemini · Grok，多模型统一接入<br />
+            <span class="desktop-copy">一个 API Key，面向 Claude Code · Codex CLI · Gemini CLI 的稳定网关</span>
+            <span class="mobile-copy">一个 API Key，统一接入<br />Claude Code · Codex CLI · Gemini CLI</span>
           </p>
         </div>
         <a class="down-cue" href="#claude" aria-label="继续向下浏览">
@@ -85,9 +85,9 @@
         <div class="section-inner">
           <div class="section-copy">
             <p class="eyebrow">Claude Code</p>
-            <h2>终端里的 Claude，指向同一个网关。</h2>
+            <h2>Claude Opus / Sonnet，统一走你的网关。</h2>
             <p>
-              一行配置，把 Claude Code 的流量切到 Mer3y。安装方式不变，日常开发节奏不变。
+              对齐模型广场式的 LLM 使用方式：Key、Base URL、模型名分开管理，Claude Code 只需要切到 Mer3y 即可使用。
             </p>
             <div class="pill-row">
               <span>PowerShell</span>
@@ -147,9 +147,9 @@
         <div class="section-inner reverse">
           <div class="section-copy">
             <p class="eyebrow">OpenAI / Codex CLI</p>
-            <h2>Codex CLI，同一个 base_url。</h2>
+            <h2>GPT / Codex 系列，同一个 base_url。</h2>
             <p>
-              Responses API 直连，配置写在本地 TOML 里。模型和鉴权各管各的，改一行切一个。
+              面向 GPT 与 Codex 工作流保留 OpenAI 兼容调用体验，模型选择、认证与分组策略统一收口到一个入口。
             </p>
             <div class="pill-row muted">
               <span>Responses API</span>
@@ -213,9 +213,9 @@ requires_openai_auth = true</code></pre>
         <div class="section-inner">
           <div class="section-copy">
             <p class="eyebrow">Gemini CLI</p>
-            <h2>Gemini CLI，三个环境变量。</h2>
+            <h2>Gemini Pro / Flash，环境变量即接入。</h2>
             <p>
-              环境变量式接入，适合脚本和临时工作区。BASE_URL + Key + Model，终端即走。
+              适合脚本、临时工作区和自动化任务。BASE_URL + Key + Model 三项配置，就能把 Gemini 流量接入统一网关。
             </p>
             <div class="metric-row" aria-label="接入特点">
               <span><strong>3</strong> 个变量</span>
@@ -269,27 +269,27 @@ GEMINI_MODEL=latest-model-name</code></pre>
         <div class="features-inner">
           <div class="section-copy centered">
             <p class="eyebrow">进度</p>
-            <h2>做完的就是能用的，剩下的还在写。</h2>
+            <h2>从模型到终端，一个入口管到底。</h2>
             <p>
-              三家主流 AI 编程终端已接入。协同功能在做。
+              参考模型广场的组织方式，将 GPT、Claude、Gemini、Grok 等 LLM 能力，与 API Key、分组、倍率和终端配置放在同一套体验里。
             </p>
           </div>
 
           <div class="feature-grid">
             <article class="feature-card">
               <span class="status done">已完成</span>
-              <h3>Claude / OpenAI / Gemini</h3>
-              <p>三家 API 已通，开箱即用。</p>
+              <h3>GPT / Claude / Gemini / Grok</h3>
+              <p>主流 LLM 模型统一展示，按用途选择模型与分组。</p>
             </article>
             <article class="feature-card">
               <span class="status done">已完成</span>
-              <h3>格式转换</h3>
-              <p>API 格式互转，可自定义请求头。</p>
+              <h3>模型广场 & 分组</h3>
+              <p>模型、价格倍率、可用分组与密钥消费集中管理。</p>
             </article>
             <article class="feature-card">
               <span class="status progress">开发中</span>
-              <h3>协同开发</h3>
-              <p>远程开发、Skill 分享、Playground。</p>
+              <h3>CLI / API 兼容</h3>
+              <p>继续补齐远程开发、Playground 与更多 OpenAI 兼容客户端。</p>
             </article>
           </div>
         </div>
