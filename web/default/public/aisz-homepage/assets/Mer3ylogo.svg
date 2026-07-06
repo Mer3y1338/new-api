@@ -1,13 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1254" height="1254" viewBox="0 0 1254 1254" role="img" aria-labelledby="title desc">
-  <title id="title">Vectorized SVG from quoted image</title>
-  <desc id="desc">Auto-vectorized dark logo mark from the quoted raster image; transparent background.</desc>
-  <path fill="#050505" fill-rule="evenodd" d="
-    M 273 174 L 234 478 L 211 638 L 192 790 L 177 894 L 167 978 L 152 1078 L 151 1093 L 239 1037 L 349 970 L 386 664 L 410 694 L 536 863 L 626 989 L 628 989 L 730 847 L 866 665 L 902 970 L 978 1015 L 1104 1093 L 1105 1092 L 1076 894 L 1041 630 L 1015 448 L 980 174 L 946 218 L 627 654 L 368 300 Z
-    M 289 233 L 358 325 L 539 574 L 627 692 L 962 235 L 964 233 L 965 234 L 982 367 L 885 492 L 684 759 L 684 874 L 627 952 L 570 874 L 569 758 L 373 498 L 271 367 Z
-    M 986 398 L 1007 554 L 1010 568 L 1010 576 L 1018 625 L 1022 662 L 1025 676 L 1030 720 L 1032 727 L 1056 910 L 1075 1038 L 1075 1049 L 1019 1015 L 1016 1009 L 980 741 L 977 710 L 965 628 L 952 519 L 930 545 L 857 640 L 707 841 L 706 840 L 706 767 L 883 532 Z
-    M 267 399 L 269 401 L 268 403 L 269 402 L 274 407 L 358 516 L 548 768 L 548 840 L 547 841 L 432 687 L 305 521 L 302 519 L 287 636 L 276 707 L 237 1011 L 231 1017 L 180 1048 L 180 1036 L 191 961 L 195 922 L 206 849 L 217 760 L 222 732 L 233 643 L 252 516 Z
-    M 935 575 L 937 579 L 968 822 L 992 989 L 991 997 L 922 956 L 922 947 L 901 778 L 886 638 Z
-    M 318 575 L 366 637 L 362 681 L 341 847 L 330 950 L 328 958 L 262 997 L 261 991 L 277 869 L 284 825 L 316 578 Z
-  "/>
+  <title id="title">Mer3y Sense M line mark</title>
+  <desc id="desc">A refined translucent architectural line mark shaped as the letter M for Mer3y Sense.</desc>
+  <defs>
+    <linearGradient id="mer3yLine" x1="164" y1="120" x2="1090" y2="1088" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ead9dc" stop-opacity="0.96"/>
+      <stop offset="0.48" stop-color="#dcc0c6" stop-opacity="0.86"/>
+      <stop offset="1" stop-color="#cfadb6" stop-opacity="0.92"/>
+    </linearGradient>
+    <linearGradient id="mer3yLineSheen" x1="270" y1="120" x2="970" y2="1050" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff8f8" stop-opacity="0.56"/>
+      <stop offset="0.42" stop-color="#ead3d8" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#b98d99" stop-opacity="0.26"/>
+    </linearGradient>
+    <filter id="paperShadow" x="-12%" y="-12%" width="124%" height="124%">
+      <feDropShadow dx="0" dy="18" stdDeviation="14" flood-color="#7b5961" flood-opacity="0.10"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="2" flood-color="#ffffff" flood-opacity="0.42"/>
+    </filter>
+  </defs>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round" filter="url(#paperShadow)">
+    <path d="M166 1044 C244 808 335 514 430 176 C451 101 497 96 536 170 L627 342 L718 170 C757 96 803 101 824 176 C919 514 1010 808 1088 1044" stroke="url(#mer3yLine)" stroke-width="38" opacity="0.82"/>
+    <path d="M248 1044 C314 828 391 574 470 282 C486 224 514 220 543 276 L627 462 L711 276 C740 220 768 224 784 282 C863 574 940 828 1006 1044" stroke="url(#mer3yLine)" stroke-width="38" opacity="0.82"/>
+    <path d="M330 1044 C386 852 450 638 514 402 C527 356 546 354 568 402 L627 556 L686 402 C708 354 727 356 740 402 C804 638 868 852 924 1044" stroke="url(#mer3yLine)" stroke-width="38" opacity="0.82"/>
+    <path d="M412 1044 C462 876 517 704 566 532 L627 672 L688 532 C737 704 792 876 842 1044" stroke="url(#mer3yLine)" stroke-width="38" opacity="0.82"/>
+    <path d="M206 1044 C302 812 422 724 548 628 C602 587 625 536 627 490" stroke="url(#mer3yLine)" stroke-width="38" opacity="0.82"/>
+    <path d="M1048 1044 C952 812 832 724 706 628 C652 587 629 536 627 490" stroke="url(#mer3yLine)" stroke-width="38" opacity="0.82"/>
+    <path d="M166 1044 C244 808 335 514 430 176 C451 101 497 96 536 170 L627 342 L718 170 C757 96 803 101 824 176 C919 514 1010 808 1088 1044" stroke="url(#mer3yLineSheen)" stroke-width="14" opacity="0.42"/>
+    <path d="M248 1044 C314 828 391 574 470 282 C486 224 514 220 543 276 L627 462 L711 276 C740 220 768 224 784 282 C863 574 940 828 1006 1044" stroke="url(#mer3yLineSheen)" stroke-width="14" opacity="0.42"/>
+    <path d="M330 1044 C386 852 450 638 514 402 C527 356 546 354 568 402 L627 556 L686 402 C708 354 727 356 740 402 C804 638 868 852 924 1044" stroke="url(#mer3yLineSheen)" stroke-width="14" opacity="0.42"/>
+    <path d="M412 1044 C462 876 517 704 566 532 L627 672 L688 532 C737 704 792 876 842 1044" stroke="url(#mer3yLineSheen)" stroke-width="14" opacity="0.42"/>
+    <path d="M206 1044 C302 812 422 724 548 628 C602 587 625 536 627 490" stroke="url(#mer3yLineSheen)" stroke-width="14" opacity="0.42"/>
+    <path d="M1048 1044 C952 812 832 724 706 628 C652 587 629 536 627 490" stroke="url(#mer3yLineSheen)" stroke-width="14" opacity="0.42"/>
+  </g>
 </svg>

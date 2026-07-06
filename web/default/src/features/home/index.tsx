@@ -20,11 +20,12 @@ For commercial licensing, please contact support@quantumnous.com
 export function Home() {
   return (
     <iframe
-      src='/aisz-homepage.html?v=20260706-typewriter-v6'
+      src='/aisz-homepage.html?v=20260706-m-line-logo-v9'
       title='Mer3y Sense Home'
       className='fixed inset-0 h-svh w-screen border-0 bg-black'
     />
   )
 }
+
 
 
