@@ -104,26 +104,256 @@ For commercial licensing, please contact support@quantumnous.com
 }
 
 .luoyin-auth {
+  --primary: oklch(0.62 0.13 36);
+  --primary-foreground: oklch(0.99 0.018 84);
+  --ring: oklch(0.68 0.13 36 / 68%);
+  --background: oklch(0.985 0.018 88);
+  --foreground: oklch(0.18 0.016 82);
+  --card: oklch(0.995 0.012 90 / 88%);
+  --card-foreground: oklch(0.18 0.016 82);
+  --popover: oklch(0.995 0.012 90);
+  --popover-foreground: oklch(0.18 0.016 82);
+  --muted: oklch(0.94 0.018 83);
+  --muted-foreground: oklch(0.48 0.026 78);
+  --accent: oklch(0.93 0.04 53);
+  --accent-foreground: oklch(0.28 0.04 52);
+  --border: oklch(0.78 0.062 44 / 25%);
+  --input: oklch(0.82 0.044 48 / 42%);
+  --luoyin-ink: oklch(0.18 0.016 82);
+  --luoyin-paper: oklch(0.985 0.018 88);
+  isolation: isolate;
   background:
-    linear-gradient(180deg, oklch(0.98 0.026 232), oklch(0.95 0.045 292) 58%, oklch(0.99 0.022 350));
+    radial-gradient(circle at 50% 40%, rgba(212, 162, 127, 0.22), transparent 30rem),
+    linear-gradient(180deg, #fffefa 0%, #faf9f5 34%, #f7f4ec 100%);
+  color: #191919;
+  font-family: var(--font-serif), Georgia, 'Times New Roman', 'Noto Serif SC', 'Songti SC', serif;
 }
 
 .dark .luoyin-auth {
+  --background: oklch(0.18 0.018 65);
+  --foreground: oklch(0.94 0.018 88);
+  --card: oklch(0.22 0.022 63 / 88%);
+  --primary: oklch(0.72 0.12 45);
+  --primary-foreground: oklch(0.18 0.018 65);
+  --muted: oklch(0.28 0.02 65);
+  --muted-foreground: oklch(0.76 0.025 76);
+  --accent: oklch(0.31 0.035 45);
+  --border: oklch(0.82 0.054 52 / 16%);
+  --input: oklch(0.84 0.04 52 / 18%);
   background:
-    linear-gradient(180deg, oklch(0.15 0.036 265), oklch(0.19 0.035 278) 55%, oklch(0.2 0.03 322));
+    radial-gradient(circle at 50% 40%, rgba(204, 120, 92, 0.14), transparent 30rem),
+    linear-gradient(180deg, #211d18 0%, #191714 48%, #15130f 100%);
+  color: oklch(0.94 0.018 88);
 }
 
 .luoyin-auth::before {
   content: '';
   position: absolute;
   inset: 0;
+  z-index: -3;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(204, 120, 92, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(204, 120, 92, 0.055) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 16%, #000 78%, transparent 100%);
+}
+
+.luoyin-auth::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -2;
   pointer-events: none;
   background:
-    radial-gradient(circle at 18% 22%, oklch(0.82 0.12 215 / 58%) 0 1px, transparent 1.6px),
-    radial-gradient(circle at 82% 34%, oklch(0.94 0.1 330 / 48%) 0 1px, transparent 1.7px),
-    linear-gradient(122deg, transparent 0 46%, oklch(0.76 0.13 218 / 12%) 46.2% 46.7%, transparent 47%);
-  background-size: 8rem 8rem, 9rem 9rem;
-  opacity: 0.7;
+    radial-gradient(circle at 18% 18%, rgba(122, 139, 115, 0.12), transparent 18rem),
+    radial-gradient(circle at 84% 72%, rgba(204, 120, 92, 0.13), transparent 24rem),
+    repeating-linear-gradient(0deg, rgba(25, 25, 25, 0.018) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(201, 100, 66, 0.018) 0 1px, transparent 1px 5px);
+  mix-blend-mode: multiply;
+}
+
+.mer3y-auth-home-link {
+  border: 1px solid rgba(204, 120, 92, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 254, 250, 0.72);
+  padding: 0.38rem 0.7rem;
+  box-shadow: 0 18px 44px rgba(61, 57, 41, 0.11), inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(18px);
+  transition: transform 220ms ease, border-color 220ms ease, background 220ms ease;
+}
+
+.mer3y-auth-home-link:hover {
+  border-color: rgba(201, 100, 66, 0.34);
+  background: rgba(255, 254, 250, 0.88);
+  transform: translateY(-1px);
+}
+
+.mer3y-auth-card {
+  position: relative;
+  border: 1px solid rgba(204, 120, 92, 0.16);
+  border-radius: 2rem;
+  background:
+    linear-gradient(180deg, rgba(255, 254, 250, 0.9), rgba(250, 249, 245, 0.76)),
+    rgba(255, 254, 250, 0.72);
+  box-shadow:
+    0 28px 80px rgba(61, 57, 41, 0.14),
+    0 1px 0 rgba(255, 255, 255, 0.9) inset;
+  backdrop-filter: blur(26px) saturate(1.04);
+}
+
+.mer3y-auth-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.62), transparent 38%),
+    repeating-linear-gradient(0deg, rgba(25, 25, 25, 0.02) 0 1px, transparent 1px 4px);
+  opacity: 0.72;
+}
+
+.mer3y-auth-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.mer3y-auth-orb {
+  position: absolute;
+  z-index: -1;
+  border-radius: 999px;
+  filter: blur(12px);
+  opacity: 0.58;
+}
+
+.mer3y-auth-orb-left {
+  left: max(-7rem, -8vw);
+  top: 18%;
+  width: 22rem;
+  height: 22rem;
+  background: radial-gradient(circle, rgba(122, 139, 115, 0.18), transparent 68%);
+}
+
+.mer3y-auth-orb-right {
+  right: max(-9rem, -9vw);
+  bottom: 6%;
+  width: 28rem;
+  height: 28rem;
+  background: radial-gradient(circle, rgba(204, 120, 92, 0.18), transparent 70%);
+}
+
+.mer3y-auth-logo-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: -1;
+  width: min(58vw, 38rem);
+  aspect-ratio: 1;
+  opacity: 0.035;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  transform: translate(-50%, -50%) rotate(-4deg);
+  filter: blur(0.2px);
+}
+
+.mer3y-auth-kicker {
+  width: fit-content;
+  border: 1px solid rgba(204, 120, 92, 0.2);
+  border-radius: 999px;
+  background: rgba(255, 254, 250, 0.68);
+  padding: 0.28rem 0.7rem;
+  color: #c96442;
+  font-size: 0.74rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.mer3y-auth-title {
+  color: #191919;
+  line-height: 1.08;
+}
+
+.mer3y-auth-subtitle,
+.mer3y-auth-register,
+.mer3y-auth-terms {
+  color: #696760;
+}
+
+.mer3y-auth-register a,
+.mer3y-auth-forgot {
+  color: #c96442;
+}
+
+.mer3y-auth-form label {
+  color: #3d3929;
+  font-weight: 500;
+}
+
+.mer3y-auth-form input {
+  border-color: rgba(204, 120, 92, 0.22);
+  background: rgba(255, 254, 250, 0.74);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.68);
+  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+
+.mer3y-auth-form input:focus-visible {
+  border-color: rgba(201, 100, 66, 0.58);
+  box-shadow: 0 0 0 4px rgba(204, 120, 92, 0.13);
+}
+
+.mer3y-auth-submit {
+  min-height: 2.75rem;
+  border: 1px solid rgba(159, 85, 61, 0.18);
+  border-radius: 999px;
+  background: linear-gradient(135deg, #d37755, #c96442) !important;
+  color: #fffefa !important;
+  box-shadow: 0 18px 36px rgba(201, 100, 66, 0.22);
+}
+
+.mer3y-auth-submit:hover {
+  background: linear-gradient(135deg, #dc8362, #bf5d3b) !important;
+}
+
+.mer3y-auth-alt-button {
+  border-color: rgba(204, 120, 92, 0.2) !important;
+  background: rgba(255, 254, 250, 0.62) !important;
+  color: #3d3929 !important;
+}
+
+.mer3y-auth-alt-button:hover {
+  border-color: rgba(201, 100, 66, 0.34) !important;
+  background: rgba(255, 254, 250, 0.86) !important;
+}
+
+.dark .mer3y-auth-home-link,
+.dark .mer3y-auth-card,
+.dark .mer3y-auth-kicker,
+.dark .mer3y-auth-alt-button {
+  border-color: rgba(230, 168, 126, 0.18) !important;
+  background: rgba(35, 31, 25, 0.72) !important;
+}
+
+.dark .mer3y-auth-title {
+  color: oklch(0.94 0.018 88);
+}
+
+.dark .mer3y-auth-subtitle,
+.dark .mer3y-auth-register,
+.dark .mer3y-auth-terms {
+  color: oklch(0.76 0.025 76);
+}
+
+.dark .mer3y-auth-form label,
+.dark .mer3y-auth-alt-button {
+  color: oklch(0.88 0.02 82) !important;
+}
+
+.dark .mer3y-auth-form input {
+  border-color: rgba(230, 168, 126, 0.18);
+  background: rgba(35, 31, 25, 0.72);
 }
 
 @media (max-width: 768px) {

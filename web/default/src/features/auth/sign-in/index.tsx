@@ -32,18 +32,22 @@ export function SignIn() {
 
   return (
     <AuthLayout>
-      <div className='w-full space-y-8'>
-        <div className='space-y-2'>
-          <h2 className='text-center text-2xl font-semibold tracking-tight sm:text-left'>
-            {t('Sign in')}
+      <div className='w-full space-y-7'>
+        <div className='mer3y-auth-heading space-y-3'>
+          <p className='mer3y-auth-kicker'>AI Coding Gateway</p>
+          <h2 className='mer3y-auth-title text-center text-3xl font-medium tracking-tight sm:text-left sm:text-4xl'>
+            {t('Sign in')} Mer3y Sense
           </h2>
+          <p className='mer3y-auth-subtitle text-left text-sm sm:text-base'>
+            一个 API key，连接 Claude Code、Codex CLI 与 Gemini CLI。
+          </p>
           {!status?.self_use_mode_enabled &&
             status?.register_enabled !== false && (
-              <p className='text-muted-foreground text-left text-sm sm:text-base'>
+              <p className='mer3y-auth-register text-left text-sm sm:text-base'>
                 {t("Don't have an account?")}{' '}
                 <Link
                   to='/sign-up'
-                  className='hover:text-primary font-medium underline underline-offset-4'
+                  className='font-medium underline underline-offset-4'
                 >
                   {t('Sign up')}
                 </Link>
@@ -57,7 +61,7 @@ export function SignIn() {
         <TermsFooter
           variant='sign-in'
           status={status}
-          className='text-center'
+          className='mer3y-auth-terms text-center'
         />
       </div>
     </AuthLayout>

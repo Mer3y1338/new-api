@@ -29,18 +29,27 @@ export function AuthLayout({ children }: AuthLayoutProps) {
   const { t } = useTranslation()
 
   return (
-    <div className='luoyin-shell luoyin-auth relative grid h-svh max-w-none'>
+    <div className='luoyin-shell luoyin-auth relative grid h-svh max-w-none overflow-hidden'>
+      <div className='mer3y-auth-orb mer3y-auth-orb-left' aria-hidden='true' />
+      <div className='mer3y-auth-orb mer3y-auth-orb-right' aria-hidden='true' />
+      <div
+        className='mer3y-auth-logo-watermark'
+        aria-hidden='true'
+        style={{ backgroundImage: "url('/aisz-homepage/assets/Mer3ylogo.svg')" }}
+      />
+
       <Link
         to='/'
         aria-label={`${t('Go to home')} - ${LUOYIN_BRAND_NAME}`}
-        className='absolute top-4 left-4 z-10 rounded-full border border-white/[0.45] bg-white/[0.72] px-3 py-1.5 shadow-[0_10px_30px_-18px_rgba(30,41,59,0.55),inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-2xl transition-all duration-300 hover:bg-white/[0.82] dark:border-white/[0.16] dark:bg-white/[0.14] sm:top-8 sm:left-8'
+        className='mer3y-auth-home-link absolute top-4 left-4 z-20 sm:top-8 sm:left-8'
       >
-        <div className='flex h-8 w-32 items-center justify-center md:w-36'>
+        <div className='flex h-8 w-36 items-center justify-center md:w-40'>
           <LuoyinWordmark />
         </div>
       </Link>
-      <div className='container flex items-center pt-16 sm:pt-0'>
-        <div className='mx-auto flex w-full flex-col justify-center space-y-2 px-4 py-8 sm:w-[480px] sm:p-8'>
+
+      <div className='container relative z-10 flex items-center pt-20 sm:pt-0'>
+        <div className='mer3y-auth-card mx-auto flex w-full flex-col justify-center space-y-2 px-6 py-8 sm:w-[500px] sm:p-10'>
           {children}
         </div>
       </div>

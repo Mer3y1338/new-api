@@ -292,7 +292,7 @@ export function UserAuthForm({
             variant='outline'
             disabled={passkeyButtonDisabled}
             onClick={handlePasskeyLogin}
-            className='h-11 w-full justify-center gap-2 rounded-lg'
+            className='mer3y-auth-alt-button h-11 w-full justify-center gap-2 rounded-xl'
           >
             {isPasskeyLoading ? (
               <Loader2 className='h-4 w-4 animate-spin' />
@@ -323,7 +323,7 @@ export function UserAuthForm({
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className={cn('grid gap-4', className)}
+        className={cn('mer3y-auth-form grid gap-4', className)}
         {...props}
       >
         {hasAlternativeLogin && alternativeLoginMethods}
@@ -364,7 +364,7 @@ export function UserAuthForm({
                   <FormMessage />
                   <Link
                     to='/forgot-password'
-                    className='text-muted-foreground absolute end-0 -top-0.5 z-10 text-sm font-medium hover:opacity-75'
+                    className='mer3y-auth-forgot absolute end-0 -top-0.5 z-10 text-sm font-medium hover:opacity-75'
                   >
                     {t('Forgot password?')}
                   </Link>
@@ -375,7 +375,7 @@ export function UserAuthForm({
             {/* Submit Button */}
             <Button
               type='submit'
-              className='mt-2 w-full justify-center gap-2'
+              className='mer3y-auth-submit mt-2 w-full justify-center gap-2'
               disabled={isLoading || (requiresLegalConsent && !agreedToLegal)}
             >
               {isLoading ? <Loader2 className='animate-spin' /> : <LogIn />}
