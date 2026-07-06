@@ -96,7 +96,7 @@ For commercial licensing, please contact support@quantumnous.com
    * `--font-sans` and `--font-serif` via `[data-theme-font='...']` blocks
    * in theme-presets.css. Default mirrors `--font-sans` so behavior is
    * identical when no font preference is set. */
-  --font-body: var(--font-sans);
+  --font-body: var(--font-serif);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);

@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#faf9f5" />
+    <title>Mer3y Sense</title>
+    <meta name="description" content="Mer3y Sense — AI 编程工具统一网关。" />
+    <link rel="icon" type="image/svg+xml" href="./assets/Mer3ylogo.svg" />
+    <link rel="preload" href="./assets/fonts/TiemposText/TiemposText-Regular.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="./assets/fonts/StyreneA/StyreneA-Regular.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="./styles.css?v=20260706-serif-v1" />
+    <noscript>
+      <style>
+        html, body { overflow: auto !important; height: auto !important; }
+        .slide-deck { display: block !important; transform: none !important; transition: none !important; }
+        .snap-section { height: auto !important; min-height: auto !important; padding: 60px 24px !important; }
+      </style>
+    </noscript>
+  </head>
+  <body data-current="home">
+    <div class="paper-texture" aria-hidden="true"></div>
+    <div class="logo-travel-layer" aria-hidden="true"></div>
+    <div class="aether-logo-fixed" aria-hidden="true">
+      <div class="aether-symbol-layer">
+        <span class="logo-ripple ripple-one"></span>
+        <span class="logo-ripple ripple-two"></span>
+        <img class="logo-fill" src="./assets/Mer3ylogo.svg" alt="" aria-hidden="true" />
+        <svg class="mer3y-build-svg" viewBox="0 0 1254 1254" role="presentation">
+          <g class="mer3y-build-lines">
+            <path class="mer3y-build-line line-shell" pathLength="1" d="M 273 174 L 234 478 L 211 638 L 192 790 L 177 894 L 167 978 L 152 1078 L 151 1093 L 239 1037 L 349 970 L 386 664 L 410 694 L 536 863 L 626 989 L 628 989 L 730 847 L 866 665 L 902 970 L 978 1015 L 1104 1093 L 1105 1092 L 1076 894 L 1041 630 L 1015 448 L 980 174 L 946 218 L 627 654 L 368 300 Z" />
+            <path class="mer3y-build-line line-core" pathLength="1" d="M 289 233 L 358 325 L 539 574 L 627 692 L 962 235 L 964 233 L 965 234 L 982 367 L 885 492 L 684 759 L 684 874 L 627 952 L 570 874 L 569 758 L 373 498 L 271 367 Z" />
+            <path class="mer3y-build-line line-right" pathLength="1" d="M 986 398 L 1007 554 L 1010 568 L 1010 576 L 1018 625 L 1022 662 L 1025 676 L 1030 720 L 1032 727 L 1056 910 L 1075 1038 L 1075 1049 L 1019 1015 L 1016 1009 L 980 741 L 977 710 L 965 628 L 952 519 L 930 545 L 857 640 L 707 841 L 706 840 L 706 767 L 883 532 Z" />
+            <path class="mer3y-build-line line-left" pathLength="1" d="M 267 399 L 269 401 L 268 403 L 269 402 L 274 407 L 358 516 L 548 768 L 548 840 L 547 841 L 432 687 L 305 521 L 302 519 L 287 636 L 276 707 L 237 1011 L 231 1017 L 180 1048 L 180 1036 L 191 961 L 195 922 L 206 849 L 217 760 L 222 732 L 233 643 L 252 516 Z" />
+            <path class="mer3y-build-line line-right-foot" pathLength="1" d="M 935 575 L 937 579 L 968 822 L 992 989 L 991 997 L 922 956 L 922 947 L 901 778 L 886 638 Z" />
+            <path class="mer3y-build-line line-left-foot" pathLength="1" d="M 318 575 L 366 637 L 362 681 L 341 847 L 330 950 L 328 958 L 262 997 L 261 991 L 277 869 L 284 825 L 316 578 Z" />
+          </g>
+        </svg>
+      </div>
+    </div>
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="brand" href="#home" aria-label="Mer3y 首页">
+          <img class="brand-mark" src="./assets/Mer3ylogo.svg" alt="" aria-hidden="true" />
+          <span>
+            <strong>Mer3y</strong>
+            <small>Mer3y Sense</small>
+          </span>
+        </a>
+
+        <nav class="nav-links" aria-label="主导航">
+          <a href="#home" data-nav="home">首页</a>
+          <a href="#claude" data-nav="claude">Claude</a>
+          <a href="#codex" data-nav="codex">OpenAI</a>
+          <a href="#gemini" data-nav="gemini">Gemini</a>
+          <a href="#features" data-nav="features">更多</a>
+        </nav>
+
+        <a class="login-link" href="/sign-in" target="_top">
+          登录
+        </a>
+      </div>
+    </header>
+
+    <main class="slide-deck">
+      <section class="snap-section hero-section" id="home" data-section="home">
+        <div class="hero-content">
+          <p class="kicker">AI Coding Gateway</p>
+          <h1>
+            <span class="welcome-text">欢迎使用</span>
+            <span class="type-wrap"><span id="typewriter"></span><span class="cursor">_</span></span>
+          </h1>
+          <p class="hero-copy">
+            一个 API key，多个 AI 编程终端<br />
+            <span class="desktop-copy">Claude Code · Codex CLI · Gemini CLI，同一个入口</span>
+            <span class="mobile-copy">Claude Code · Codex CLI ·<br />Gemini CLI，同一个入口</span>
+          </p>
+        </div>
+        <a class="down-cue" href="#claude" aria-label="继续向下浏览">
+          <span></span>
+        </a>
+      </section>
+
+      <section class="snap-section content-section" id="claude" data-section="claude">
+        <div class="section-inner">
+          <div class="section-copy">
+            <p class="eyebrow">Claude Code</p>
+            <h2>终端里的 Claude，指向同一个网关。</h2>
+            <p>
+              一行配置，把 Claude Code 的流量切到 Mer3y。安装方式不变，日常开发节奏不变。
+            </p>
+            <div class="pill-row">
+              <span>PowerShell</span>
+              <span>Node.js</span>
+              <span>Homebrew</span>
+            </div>
+          </div>
+
+          <div class="code-stack">
+            <div class="model-emblem claude-emblem" data-logo-stage="claude" aria-hidden="true">
+              <img class="emblem-ripple r-one" src="./assets/claude.svg" alt="" aria-hidden="true" />
+              <img class="emblem-ripple r-two" src="./assets/claude.svg" alt="" aria-hidden="true" />
+              <img class="emblem-ripple r-three" src="./assets/claude.svg" alt="" aria-hidden="true" />
+              <span class="emblem-core">
+                <img class="emblem-symbol" src="./assets/claude.svg" alt="" aria-hidden="true" />
+              </span>
+              <svg class="provider-build-svg claude-build-svg" viewBox="0 0 24 24" role="presentation">
+                <path class="provider-build-seg" pathLength="1" d="m4.7144 15.9555 4.7174-2.6471.079-.2307-.079-.1275h-.2307l-.7893-.0486-2.6956-.0729-2.3375-.0971-2.2646-.1214-.5707-.1215-.5343-.7042.0546-.3522.4797-.3218.686.0608 1.5179.1032 2.2767.1578 1.6514.0972 2.4468.255h.3886l.0546-.1579-.1336-.0971-.1032-.0972L6.973 9.8356l-2.55-1.6879-1.3356-.9714-.7225-.4918-.3643-.4614-.1578-1.0078.6557-.7225.8803.0607.2246.0607.8925.686 1.9064 1.4754 2.4893 1.8336.3643.3035.1457-.1032.0182-.0728-.164-.2733-1.3539-2.4467-1.445-2.4893-.6435-1.032-.17-.6194c-.0607-.255-.1032-.4674-.1032-.7285L6.287.1335 6.6997 0l.9957.1336.419.3642.6192 1.4147 1.0018 2.2282 1.5543 3.0296.4553.8985.2429.8318.091.255h.1579v-.1457l.1275-1.706.2368-2.0947.2307-2.6957.0789-.7589.3764-.9107.7468-.4918.5828.2793.4797.686-.0668.4433-.2853 1.8517-.5586 2.9021-.3643 1.9429h.2125l.2429-.2429.9835-1.3053 1.6514-2.0643.7286-.8196.85-.9046.5464-.4311h1.0321l.759 1.1293-.34 1.1657-1.0625 1.3478-.8804 1.1414-1.2628 1.7-.7893 1.36.0729.1093.1882-.0183 2.8535-.607 1.5421-.2794 1.8396-.3157.8318.3886.091.3946-.3278.8075-1.967.4857-2.3072.4614-3.4364.8136-.0425.0304.0486.0607 1.5482.1457.6618.0364h1.621l3.0175.2247.7892.522.4736.6376-.079.4857-1.2142.6193-1.6393-.3886-3.825-.9107-1.3113-.3279h-.1822v.1093l1.0929 1.0686 2.0035 1.8092 2.5075 2.3314.1275.5768-.3218.4554-.34-.0486-2.2039-1.6575-.85-.7468-1.9246-1.621h-.1275v.17l.4432.6496 2.3436 3.5214.1214 1.0807-.17.3521-.6071.2125-.6679-.1214-1.3721-1.9246L14.38 17.959l-1.1414-1.9428-.1397.079-.674 7.2552-.3156.3703-.7286.2793-.6071-.4614-.3218-.7468.3218-1.4753.3886-1.9246.3157-1.53.2853-1.9004.17-.6314-.0121-.0425-.1397.0182-1.4328 1.9672-2.1796 2.9446-1.7243 1.8456-.4128.164-.7164-.3704.0667-.6618.4008-.5889 2.386-3.0357 1.4389-1.882.929-1.0868-.0062-.1579h-.0546l-6.3385 4.1164-1.1293.1457-.4857-.4554.0608-.7467.2307-.2429 1.9064-1.3114Z" />
+                <path class="provider-build-fill" d="m4.7144 15.9555 4.7174-2.6471.079-.2307-.079-.1275h-.2307l-.7893-.0486-2.6956-.0729-2.3375-.0971-2.2646-.1214-.5707-.1215-.5343-.7042.0546-.3522.4797-.3218.686.0608 1.5179.1032 2.2767.1578 1.6514.0972 2.4468.255h.3886l.0546-.1579-.1336-.0971-.1032-.0972L6.973 9.8356l-2.55-1.6879-1.3356-.9714-.7225-.4918-.3643-.4614-.1578-1.0078.6557-.7225.8803.0607.2246.0607.8925.686 1.9064 1.4754 2.4893 1.8336.3643.3035.1457-.1032.0182-.0728-.164-.2733-1.3539-2.4467-1.445-2.4893-.6435-1.032-.17-.6194c-.0607-.255-.1032-.4674-.1032-.7285L6.287.1335 6.6997 0l.9957.1336.419.3642.6192 1.4147 1.0018 2.2282 1.5543 3.0296.4553.8985.2429.8318.091.255h.1579v-.1457l.1275-1.706.2368-2.0947.2307-2.6957.0789-.7589.3764-.9107.7468-.4918.5828.2793.4797.686-.0668.4433-.2853 1.8517-.5586 2.9021-.3643 1.9429h.2125l.2429-.2429.9835-1.3053 1.6514-2.0643.7286-.8196.85-.9046.5464-.4311h1.0321l.759 1.1293-.34 1.1657-1.0625 1.3478-.8804 1.1414-1.2628 1.7-.7893 1.36.0729.1093.1882-.0183 2.8535-.607 1.5421-.2794 1.8396-.3157.8318.3886.091.3946-.3278.8075-1.967.4857-2.3072.4614-3.4364.8136-.0425.0304.0486.0607 1.5482.1457.6618.0364h1.621l3.0175.2247.7892.522.4736.6376-.079.4857-1.2142.6193-1.6393-.3886-3.825-.9107-1.3113-.3279h-.1822v.1093l1.0929 1.0686 2.0035 1.8092 2.5075 2.3314.1275.5768-.3218.4554-.34-.0486-2.2039-1.6575-.85-.7468-1.9246-1.621h-.1275v.17l.4432.6496 2.3436 3.5214.1214 1.0807-.17.3521-.6071.2125-.6679-.1214-1.3721-1.9246L14.38 17.959l-1.1414-1.9428-.1397.079-.674 7.2552-.3156.3703-.7286.2793-.6071-.4614-.3218-.7468.3218-1.4753.3886-1.9246.3157-1.53.2853-1.9004.17-.6314-.0121-.0425-.1397.0182-1.4328 1.9672-2.1796 2.9446-1.7243 1.8456-.4128.164-.7164-.3704.0667-.6618.4008-.5889 2.386-3.0357 1.4389-1.882.929-1.0868-.0062-.1579h-.0546l-6.3385 4.1164-1.1293.1457-.4857-.4554.0608-.7467.2307-.2429 1.9064-1.3114Z" />
+              </svg>
+            </div>
+            <div class="stack-cards">
+              <div class="switcher" role="tablist" aria-label="Claude 安装方式">
+                <button class="is-active" id="tab-powershell" type="button" role="tab" aria-selected="true" aria-controls="pane-powershell" data-platform="powershell">PowerShell</button>
+                <button id="tab-node" type="button" role="tab" aria-selected="false" aria-controls="pane-node" tabindex="-1" data-platform="node">Node.js</button>
+                <button id="tab-homebrew" type="button" role="tab" aria-selected="false" aria-controls="pane-homebrew" tabindex="-1" data-platform="homebrew">Homebrew</button>
+              </div>
+
+              <article class="code-window claude-code">
+                <div class="window-bar">
+                  <span>install</span>
+                  <button type="button" data-copy-target="active-claude">复制</button>
+                </div>
+                <pre class="code-pane is-active" id="pane-powershell" role="tabpanel" aria-labelledby="tab-powershell" data-platform-pane="powershell"><code>irm https://metapi.mer3y.xyz/install.ps1 | iex</code></pre>
+                <pre class="code-pane" id="pane-node" role="tabpanel" aria-labelledby="tab-node" data-platform-pane="node" hidden><code>npm install -g @anthropic-ai/claude-code</code></pre>
+                <pre class="code-pane" id="pane-homebrew" role="tabpanel" aria-labelledby="tab-homebrew" data-platform-pane="homebrew" hidden><code>brew install claude-code</code></pre>
+              </article>
+
+              <article class="code-window">
+                <div class="window-bar">
+                  <span>~/.claude/settings.json</span>
+                  <button type="button" data-copy-target="#claudeSettings">复制</button>
+                </div>
+                <pre><code id="claudeSettings">{
+  "env": {
+    "ANTHROPIC_AUTH_TOKEN": "your-api-key",
+    "ANTHROPIC_BASE_URL": "https://metapi.mer3y.xyz/v1"
+  }
+}</code></pre>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="snap-section content-section alt-section" id="codex" data-section="codex">
+        <div class="section-inner reverse">
+          <div class="section-copy">
+            <p class="eyebrow">OpenAI / Codex CLI</p>
+            <h2>Codex CLI，同一个 base_url。</h2>
+            <p>
+              Responses API 直连，配置写在本地 TOML 里。模型和鉴权各管各的，改一行切一个。
+            </p>
+            <div class="pill-row muted">
+              <span>Responses API</span>
+              <span>TOML</span>
+              <span>Bearer Token</span>
+            </div>
+          </div>
+
+          <div class="code-stack">
+            <div class="model-emblem openai-emblem" data-logo-stage="codex" aria-hidden="true">
+              <span class="emblem-ripple r-one"></span>
+              <span class="emblem-ripple r-two"></span>
+              <span class="emblem-ripple r-three"></span>
+              <svg class="openai-build-svg" viewBox="0 0 24 24" role="presentation">
+                <path class="openai-build-seg seg-center" pathLength="1" d="M 9.4041,10.4976 L 12.0061,8.9978 L 14.613,10.4976 L 14.613,13.497 L 12.0156,14.9967 L 9.4089,13.497 L 9.4041,10.4976" />
+                <path class="openai-build-seg seg-arm-1" pathLength="1" d="M 13.2599,22.4292 A 4.4755,4.4755 0 0,1 10.3835,21.3884 L 10.5254,21.308 L 15.3037,18.5498 A 0.7948,0.7948 0 0,0 15.6964,17.8685 L 15.6964,11.1316 L 17.7164,12.3002 A 0.071,0.071 0 0,1 17.7544,12.3522 L 17.7544,17.9348 A 4.504,4.504 0 0,1 13.2599,22.4292" />
+                <path class="openai-build-seg seg-arm-2" pathLength="1" d="M 3.5992,18.3038 A 4.4708,4.4708 0 0,1 3.0646,15.2901 L 3.2066,15.3753 L 7.9896,18.1335 A 0.7712,0.7712 0 0,0 8.7702,18.1335 L 14.613,14.765 L 14.613,17.0974 A 0.0804,0.0804 0 0,1 14.5798,17.1589 L 9.74,19.9502 A 4.4992,4.4992 0 0,1 3.5992,18.3038" />
+                <path class="openai-build-seg seg-arm-3" pathLength="1" d="M 2.3408,7.8956 A 4.485,4.485 0 0,1 4.7063,5.9228 L 4.7063,11.6 A 0.7664,0.7664 0 0,0 5.0942,12.2765 L 10.9086,15.6308 L 8.8885,16.7993 A 0.0757,0.0757 0 0,1 8.8175,16.7993 L 3.9872,14.0128 A 4.504,4.504 0 0,1 2.3408,7.872 L 2.3408,7.8956" />
+                <path class="openai-build-seg seg-arm-4" pathLength="1" d="M 18.9371,11.7514 L 13.1038,8.364 L 15.1192,7.2 A 0.0757,0.0757 0 0,1 15.1902,7.2 L 20.0205,9.9913 A 4.4944,4.4944 0 0,1 19.344,18.0955 L 19.344,12.4183 A 0.79,0.79 0 0,0 18.937,11.7513 L 18.9371,11.7514" />
+                <path class="openai-build-seg seg-arm-5" pathLength="1" d="M 20.9478,8.7283 L 20.8058,8.6431 L 16.0323,5.8613 A 0.7759,0.7759 0 0,0 15.2469,5.8613 L 9.409,9.2297 L 9.409,6.8974 A 0.0662,0.0662 0 0,1 9.4374,6.8359 L 14.2677,4.0493 A 4.4992,4.4992 0 0,1 20.9479,8.7093 L 20.9478,8.7283" />
+                <path class="openai-build-seg seg-arm-6" pathLength="1" d="M 8.3065,12.863 L 6.2865,11.6992 A 0.0804,0.0804 0 0,1 6.2485,11.6425 L 6.2485,6.0742 A 4.4992,4.4992 0 0,1 13.6242,2.6205 L 13.4822,2.701 L 8.704,5.459 A 0.7948,0.7948 0 0,0 8.3113,6.1403 L 8.3065,12.863" />
+                <path class="openai-build-seg seg-shell" pathLength="1" d="M 22.2819,9.8211 A 5.9847,5.9847 0 0,0 21.7662,4.9103 A 6.0462,6.0462 0 0,0 15.2564,2.0103 A 6.0651,6.0651 0 0,0 4.9807,4.1818 A 5.9847,5.9847 0 0,0 0.983,7.0818 A 6.0462,6.0462 0 0,0 1.7257,14.1784 A 5.98,5.98 0 0,0 2.2367,19.0891 A 6.051,6.051 0 0,0 8.7513,21.9892 A 5.9847,5.9847 0 0,0 13.2599,24.0 A 6.0557,6.0557 0 0,0 19.0317,19.7942 A 5.9894,5.9894 0 0,0 23.0294,16.8941 A 6.0557,6.0557 0 0,0 22.2819,9.8212 L 22.2819,9.8211" />
+                <path
+                  class="openai-build-fill"
+                  d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"
+                />
+              </svg>
+            </div>
+            <div class="stack-cards">
+              <article class="code-window large">
+                <div class="window-bar">
+                  <span>~/.codex/config.toml</span>
+                  <button type="button" data-copy-target="#codexConfig">复制</button>
+                </div>
+                <pre><code id="codexConfig">model_provider = "aether"
+model = "latest-model-name"
+model_reasoning_effort = "high"
+
+[model_providers.aether]
+name = "OpenAI"
+base_url = "https://metapi.mer3y.xyz/v1"
+wire_api = "responses"
+requires_openai_auth = true</code></pre>
+              </article>
+
+              <article class="code-window compact">
+                <div class="window-bar">
+                  <span>auth.json</span>
+                  <button type="button" data-copy-target="#codexAuth">复制</button>
+                </div>
+                <pre><code id="codexAuth">{
+  "OPENAI_API_KEY": "your-api-key"
+}</code></pre>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="snap-section content-section" id="gemini" data-section="gemini">
+        <div class="section-inner">
+          <div class="section-copy">
+            <p class="eyebrow">Gemini CLI</p>
+            <h2>Gemini CLI，三个环境变量。</h2>
+            <p>
+              环境变量式接入，适合脚本和临时工作区。BASE_URL + Key + Model，终端即走。
+            </p>
+            <div class="metric-row" aria-label="接入特点">
+              <span><strong>3</strong> 个变量</span>
+              <span><strong>1</strong> 个入口</span>
+              <span><strong>CLI</strong> 友好</span>
+            </div>
+          </div>
+
+          <div class="code-stack">
+            <div class="model-emblem gemini-emblem" data-logo-stage="gemini" aria-hidden="true">
+              <span class="emblem-ripple r-one"></span>
+              <span class="emblem-ripple r-two"></span>
+              <span class="emblem-ripple r-three"></span>
+              <span class="emblem-core">
+                <img class="emblem-symbol" src="./assets/gemini.svg" alt="" aria-hidden="true" />
+              </span>
+              <svg class="provider-build-svg gemini-build-svg" viewBox="0 0 24 24" role="presentation">
+                <defs>
+                  <linearGradient id="geminiBuildGradient" x1="1.5" y1="3" x2="22.5" y2="21" gradientUnits="userSpaceOnUse">
+                    <stop offset="0" stop-color="#4285f4" />
+                    <stop offset=".48" stop-color="#7f6df2" />
+                    <stop offset="1" stop-color="#d9659f" />
+                  </linearGradient>
+                </defs>
+                <path class="provider-build-seg" pathLength="1" d="M11.04 19.32Q12 21.51 12 24q0-2.49.93-4.68.96-2.19 2.58-3.81t3.81-2.55Q21.51 12 24 12q-2.49 0-4.68-.93a12.3 12.3 0 0 1-3.81-2.58 12.3 12.3 0 0 1-2.58-3.81Q12 2.49 12 0q0 2.49-.96 4.68-.93 2.19-2.55 3.81a12.3 12.3 0 0 1-3.81 2.58Q2.49 12 0 12q2.49 0 4.68.96 2.19.93 3.81 2.55t2.55 3.81" />
+                <path class="provider-build-fill" d="M11.04 19.32Q12 21.51 12 24q0-2.49.93-4.68.96-2.19 2.58-3.81t3.81-2.55Q21.51 12 24 12q-2.49 0-4.68-.93a12.3 12.3 0 0 1-3.81-2.58 12.3 12.3 0 0 1-2.58-3.81Q12 2.49 12 0q0 2.49-.96 4.68-.93 2.19-2.55 3.81a12.3 12.3 0 0 1-3.81 2.58Q2.49 12 0 12q2.49 0 4.68.96 2.19.93 3.81 2.55t2.55 3.81" />
+              </svg>
+              <img class="gemini-sky-logo sky-one" src="./assets/gemini.svg" alt="" aria-hidden="true" />
+              <img class="gemini-sky-logo sky-two" src="./assets/gemini.svg" alt="" aria-hidden="true" />
+              <img class="gemini-sky-logo sky-three" src="./assets/gemini.svg" alt="" aria-hidden="true" />
+              <img class="gemini-sky-logo sky-four" src="./assets/gemini.svg" alt="" aria-hidden="true" />
+              <img class="gemini-sky-logo sky-five" src="./assets/gemini.svg" alt="" aria-hidden="true" />
+              <img class="gemini-sky-logo sky-six" src="./assets/gemini.svg" alt="" aria-hidden="true" />
+            </div>
+            <div class="stack-cards">
+              <article class="code-window large env-window">
+                <div class="window-bar">
+                  <span>.env</span>
+                  <button type="button" data-copy-target="#geminiEnv">复制</button>
+                </div>
+                <pre><code id="geminiEnv">GOOGLE_GEMINI_BASE_URL=https://metapi.mer3y.xyz/v1
+GEMINI_API_KEY=your-api-key
+GEMINI_MODEL=latest-model-name</code></pre>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="snap-section feature-section" id="features" data-section="features">
+        <div class="features-inner">
+          <div class="section-copy centered">
+            <p class="eyebrow">进度</p>
+            <h2>做完的就是能用的，剩下的还在写。</h2>
+            <p>
+              三家主流 AI 编程终端已接入。协同功能在做。
+            </p>
+          </div>
+
+          <div class="feature-grid">
+            <article class="feature-card">
+              <span class="status done">已完成</span>
+              <h3>Claude / OpenAI / Gemini</h3>
+              <p>三家 API 已通，开箱即用。</p>
+            </article>
+            <article class="feature-card">
+              <span class="status done">已完成</span>
+              <h3>格式转换</h3>
+              <p>API 格式互转，可自定义请求头。</p>
+            </article>
+            <article class="feature-card">
+              <span class="status progress">开发中</span>
+              <h3>协同开发</h3>
+              <p>远程开发、Skill 分享、Playground。</p>
+            </article>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <aside class="scroll-dots" aria-label="页面位置">
+      <a href="#home" data-dot="home"><span>首页</span></a>
+      <a href="#claude" data-dot="claude"><span>Claude</span></a>
+      <a href="#codex" data-dot="codex"><span>OpenAI</span></a>
+      <a href="#gemini" data-dot="gemini"><span>Gemini</span></a>
+      <a href="#features" data-dot="features"><span>更多</span></a>
+    </aside>
+
+    <script src="./app.js?v=20260706-serif-v1"></script>
+  </body>
+</html>

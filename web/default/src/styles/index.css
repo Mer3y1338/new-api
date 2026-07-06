@@ -55,14 +55,31 @@ For commercial licensing, please contact support@quantumnous.com
     scrollbar-color: var(--border) transparent;
   }
   html {
-    @apply overflow-x-hidden font-sans;
+    @apply overflow-x-hidden;
   }
   body {
     @apply bg-background text-foreground has-[div[data-variant='inset']]:bg-sidebar min-h-svh w-full;
-    /* Font is driven by the theme's font axis via `--font-body`
-     * (defined in theme.css, swapped by `[data-theme-font='...']` blocks
-     * in theme-presets.css). Defaults to the LuoYin AA interface stack. */
-    font-family: var(--font-body);
+    /* Premium serif direction: the whole interface inherits the editorial
+     * serif stack by default; monospace contexts are kept separate below. */
+    font-family: var(--font-serif);
+  }
+
+  body :where(*):not(code, pre, kbd, samp, code *, pre *, kbd *, samp *, .font-mono, .font-mono *) {
+    font-family: inherit;
+  }
+
+  body {
+    font-feature-settings:
+      'kern' 1,
+      'liga' 1,
+      'clig' 1,
+      'tnum' 1;
+    text-rendering: optimizeLegibility;
+  }
+
+  body :is(h1, h2, h3, h4, h5, h6, [data-slot='sheet-title'], [data-slot='dialog-title'], [data-slot='alert-dialog-title'], [data-slot='drawer-title'], [data-slot='card-title']) {
+    font-weight: 500;
+    letter-spacing: -0.018em;
   }
 
   /* Keep sticky headers stable while primitives lock body scrolling. */

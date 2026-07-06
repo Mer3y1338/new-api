@@ -18,10 +18,10 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { cn } from '@/lib/utils'
 
-export const LUOYIN_BRAND_NAME = '洛音云枢'
-export const LUOYIN_TAGLINE = '洛水之畔，万模同声。'
-export const LUOYIN_MICRO_TAGLINE = '星が落ちる前に、声を見つけよう。'
-export const LUOYIN_WORDMARK_SRC = '/wordmark-luoyin.svg'
+export const LUOYIN_BRAND_NAME = 'Mer3y Sense'
+export const LUOYIN_TAGLINE = 'Unified AI coding gateway.'
+export const LUOYIN_MICRO_TAGLINE = 'Claude Code / Codex CLI / Gemini CLI, one gateway'
+export const LUOYIN_WORDMARK_SRC = '/aisz-homepage/assets/Mer3ylogo.svg'
 
 type LuoyinWordmarkProps = {
   className?: string
@@ -30,14 +30,19 @@ type LuoyinWordmarkProps = {
 
 export function LuoyinWordmark({ className, src }: LuoyinWordmarkProps) {
   return (
-    <img
-      src={src || LUOYIN_WORDMARK_SRC}
-      alt=''
-      draggable={false}
+    <div
       className={cn(
-        'h-full w-full object-contain drop-shadow-[0_1px_1px_rgba(38,54,92,0.55)]',
+        'flex h-full w-full items-center justify-center gap-2 text-[15px] font-semibold tracking-[-0.03em] text-neutral-950 dark:text-white',
         className
       )}
-    />
+    >
+      <img
+        src={src || LUOYIN_WORDMARK_SRC}
+        alt=''
+        draggable={false}
+        className='h-[1.35em] w-[1.35em] shrink-0 object-contain drop-shadow-[0_1px_1px_rgba(38,54,92,0.28)]'
+      />
+      <span className='leading-none whitespace-nowrap'>Mer3y Sense</span>
+    </div>
   )
 }
