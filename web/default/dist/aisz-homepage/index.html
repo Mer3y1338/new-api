@@ -9,7 +9,7 @@
     <link rel="icon" type="image/svg+xml" href="./assets/Mer3ylogo.svg" />
     <link rel="preload" href="./assets/fonts/TiemposText/TiemposText-Regular.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="./assets/fonts/StyreneA/StyreneA-Regular.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href="./styles.css?v=20260706-typewriter-v6" />
+    <link rel="stylesheet" href="./styles.css?v=20260706-premium-title-v15" />
     <noscript>
       <style>
         html, body { overflow: auto !important; height: auto !important; }
@@ -85,9 +85,9 @@
         <div class="section-inner">
           <div class="section-copy">
             <p class="eyebrow">Claude Code</p>
-            <h2>让 Claude 成为可治理的终端能力。</h2>
+            <h2>Claude Code</h2>
             <p>
-              保留 Claude Code 的原生使用体验，同时将鉴权、模型与路由收束到 Mer3y。配置简洁，调用路径清晰。
+              直接在您的终端中释放Claude的澎湃力量。瞬间搜索百万行代码库。将数小时的流程转化为单一命令。您的工具。您的流程。您的代码库,以思维速度进化。
             </p>
             <div class="pill-row">
               <span>PowerShell</span>
@@ -121,7 +121,7 @@
                   <span>install</span>
                   <button type="button" data-copy-target="active-claude">复制</button>
                 </div>
-                <pre class="code-pane is-active" id="pane-powershell" role="tabpanel" aria-labelledby="tab-powershell" data-platform-pane="powershell"><code>irm https://metapi.mer3y.xyz/install.ps1 | iex</code></pre>
+                <pre class="code-pane is-active" id="pane-powershell" role="tabpanel" aria-labelledby="tab-powershell" data-platform-pane="powershell"><code>irm https://api.mer3y.xyz/install.ps1 | iex</code></pre>
                 <pre class="code-pane" id="pane-node" role="tabpanel" aria-labelledby="tab-node" data-platform-pane="node" hidden><code>npm install -g @anthropic-ai/claude-code</code></pre>
                 <pre class="code-pane" id="pane-homebrew" role="tabpanel" aria-labelledby="tab-homebrew" data-platform-pane="homebrew" hidden><code>brew install claude-code</code></pre>
               </article>
@@ -134,7 +134,7 @@
                 <pre><code id="claudeSettings">{
   "env": {
     "ANTHROPIC_AUTH_TOKEN": "your-api-key",
-    "ANTHROPIC_BASE_URL": "https://metapi.mer3y.xyz/v1"
+    "ANTHROPIC_BASE_URL": "https://api.mer3y.xyz/v1"
   }
 }</code></pre>
               </article>
@@ -147,9 +147,9 @@
         <div class="section-inner reverse">
           <div class="section-copy">
             <p class="eyebrow">OpenAI / Codex CLI</p>
-            <h2>GPT / Codex，在同一套接入规范下运行。</h2>
+            <h2>OpenAI Codex</h2>
             <p>
-              兼容 OpenAI 调用语义，统一管理模型、凭据与分组策略；从交互式开发到自动审查，始终保持稳定一致的入口。
+              直接在您的终端中释放Codex的推理与编程能力。瞬间理解复杂项目结构。将审查、重构与实现流程转化为单一命令。您的工具。您的流程。您的代码库,以思维速度进化。
             </p>
             <div class="pill-row muted">
               <span>Responses API</span>
@@ -190,7 +190,7 @@ model_reasoning_effort = "high"
 
 [model_providers.aether]
 name = "OpenAI"
-base_url = "https://metapi.mer3y.xyz/v1"
+base_url = "https://api.mer3y.xyz/v1"
 wire_api = "responses"
 requires_openai_auth = true</code></pre>
               </article>
@@ -213,9 +213,9 @@ requires_openai_auth = true</code></pre>
         <div class="section-inner">
           <div class="section-copy">
             <p class="eyebrow">Gemini CLI</p>
-            <h2>Gemini，为你而生的rp能力及前端编程</h2>
+            <h2>Gemini CLI</h2>
             <p>
-              以 BASE_URL、Key、Model 三项配置完成接入，让临时工作区、批处理任务与多端工具共享同一套 LLM 基础设施。
+              直接在您的终端中释放Gemini的RP能力及前端编程能力。瞬间生成、理解并重构界面工程。将原型、实现与优化流程转化为单一命令。您的工具。您的流程。您的代码库,以思维速度进化。
             </p>
             <div class="metric-row" aria-label="接入特点">
               <span><strong>3</strong> 个变量</span>
@@ -256,7 +256,7 @@ requires_openai_auth = true</code></pre>
                   <span>.env</span>
                   <button type="button" data-copy-target="#geminiEnv">复制</button>
                 </div>
-                <pre><code id="geminiEnv">GOOGLE_GEMINI_BASE_URL=https://metapi.mer3y.xyz/v1
+                <pre><code id="geminiEnv">GOOGLE_GEMINI_BASE_URL=https://api.mer3y.xyz/v1
 GEMINI_API_KEY=your-api-key
 GEMINI_MODEL=latest-model-name</code></pre>
               </article>
@@ -304,6 +304,6 @@ GEMINI_MODEL=latest-model-name</code></pre>
       <a href="#features" data-dot="features"><span>更多</span></a>
     </aside>
 
-    <script src="./app.js?v=20260706-typewriter-v6"></script>
+    <script src="./app.js?v=20260706-premium-title-v15"></script>
   </body>
 </html>

@@ -1032,6 +1032,16 @@ main {
   overflow-wrap: anywhere;
 }
 
+.content-section .section-copy h2 {
+  font-family: "TiemposText", "Bodoni 72", Didot, Georgia, "Times New Roman", serif;
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 0.98;
+  text-wrap: balance;
+  -webkit-font-smoothing: antialiased;
+  font-synthesis-weight: auto;
+}
+
 .section-copy p:not(.eyebrow) {
   max-width: 560px;
   margin: 24px 0 0;
