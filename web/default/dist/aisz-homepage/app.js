@@ -1,4 +1,4 @@
-const typePhrases = ["Mer3y Sense"];
+const typePhrases = ["Mer3y Sense", "Enjoy LLM"];
 const typeTarget = document.getElementById("typewriter");
 const deck = document.querySelector(".slide-deck");
 const logoTravelLayer = document.querySelector(".logo-travel-layer");
