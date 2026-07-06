@@ -1,0 +1,1 @@
+"use strict";(self.rspackChunknewapi_web=self.rspackChunknewapi_web||[]).push([[7337],{36944(e,s,r){r.r(s),r.d(s,{component:()=>n});var a=r(79015);let n=function(){return(0,a.jsx)("iframe",{src:"/aisz-homepage.html?v=20260706-tool-tags-v24",title:"Mer3y Sense Home",className:"fixed inset-0 h-svh w-screen border-0 bg-black"})}}}]);

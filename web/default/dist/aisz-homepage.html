@@ -9,7 +9,7 @@
     <link rel="icon" type="image/svg+xml" href="/aisz-homepage/assets/Mer3ylogo.svg" />
     <link rel="preload" href="/aisz-homepage/assets/fonts/TiemposText/TiemposText-Regular.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/aisz-homepage/assets/fonts/StyreneA/StyreneA-Regular.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href="/aisz-homepage/styles.css?v=20260706-premium-title-v15" />
+    <link rel="stylesheet" href="/aisz-homepage/styles.css?v=20260706-tool-tags-v24" />
     <noscript>
       <style>
         html, body { overflow: auto !important; height: auto !important; }
@@ -72,7 +72,7 @@
           </h1>
           <p class="hero-copy">
             为高频 AI 工作流建立统一接入层<br />
-            <span class="desktop-copy">聚合 GPT · Claude · Gemini · Grok，以一枚密钥贯穿终端、脚本与自动化</span>
+            <span class="desktop-copy">聚合 GPT · Claude · Gemini&nbsp;&nbsp;&nbsp;以一枚密钥贯穿终端、脚本与自动化</span>
             <span class="mobile-copy">一枚密钥，贯穿终端、脚本与自动化</span>
           </p>
         </div>
@@ -90,9 +90,9 @@
               直接在您的终端中释放Claude的澎湃力量。瞬间搜索百万行代码库。将数小时的流程转化为单一命令。您的工具。您的流程。您的代码库,以思维速度进化。
             </p>
             <div class="pill-row">
-              <span>PowerShell</span>
-              <span>Node.js</span>
-              <span>Homebrew</span>
+              <span>代码库感知</span>
+              <span>多文件重构</span>
+              <span>终端代理</span>
             </div>
           </div>
 
@@ -121,9 +121,9 @@
                   <span>install</span>
                   <button type="button" data-copy-target="active-claude">复制</button>
                 </div>
-                <pre class="code-pane is-active" id="pane-powershell" role="tabpanel" aria-labelledby="tab-powershell" data-platform-pane="powershell"><code>irm https://api.mer3y.xyz/install.ps1 | iex</code></pre>
+                <pre class="code-pane is-active" id="pane-powershell" role="tabpanel" aria-labelledby="tab-powershell" data-platform-pane="powershell"><code>irm https://claude.ai/install.ps1 | iex</code></pre>
                 <pre class="code-pane" id="pane-node" role="tabpanel" aria-labelledby="tab-node" data-platform-pane="node" hidden><code>npm install -g @anthropic-ai/claude-code</code></pre>
-                <pre class="code-pane" id="pane-homebrew" role="tabpanel" aria-labelledby="tab-homebrew" data-platform-pane="homebrew" hidden><code>brew install claude-code</code></pre>
+                <pre class="code-pane" id="pane-homebrew" role="tabpanel" aria-labelledby="tab-homebrew" data-platform-pane="homebrew" hidden><code>brew install --cask claude-code</code></pre>
               </article>
 
               <article class="code-window">
@@ -152,9 +152,9 @@
               直接在您的终端中释放Codex的推理与编程能力。瞬间理解复杂项目结构。将审查、重构与实现流程转化为单一命令。您的工具。您的流程。您的代码库,以思维速度进化。
             </p>
             <div class="pill-row muted">
-              <span>Responses API</span>
-              <span>TOML</span>
-              <span>Bearer Token</span>
+              <span>深度推理</span>
+              <span>代码审查</span>
+              <span>自动重构</span>
             </div>
           </div>
 
@@ -218,9 +218,9 @@ requires_openai_auth = true</code></pre>
               直接在您的终端中释放Gemini的RP能力及前端编程能力。瞬间生成、理解并重构界面工程。将原型、实现与优化流程转化为单一命令。您的工具。您的流程。您的代码库,以思维速度进化。
             </p>
             <div class="metric-row" aria-label="接入特点">
-              <span><strong>3</strong> 个变量</span>
-              <span><strong>1</strong> 个入口</span>
-              <span><strong>CLI</strong> 友好</span>
+              <span>前端原型</span>
+              <span>多模态理解</span>
+              <span>RP 增强</span>
             </div>
           </div>
 
@@ -251,6 +251,16 @@ requires_openai_auth = true</code></pre>
               <img class="gemini-sky-logo sky-six" src="/aisz-homepage/assets/gemini.svg" alt="" aria-hidden="true" />
             </div>
             <div class="stack-cards">
+              <article class="code-window gemini-install-window">
+                <div class="window-bar">
+                  <span>install</span>
+                  <button type="button" data-copy-target="#geminiInstall">复制</button>
+                </div>
+                <pre><code id="geminiInstall">npx @google/gemini-cli
+npm install -g @google/gemini-cli
+brew install gemini-cli</code></pre>
+              </article>
+
               <article class="code-window large env-window">
                 <div class="window-bar">
                   <span>.env</span>
@@ -268,8 +278,7 @@ GEMINI_MODEL=latest-model-name</code></pre>
       <section class="snap-section feature-section" id="features" data-section="features">
         <div class="features-inner">
           <div class="section-copy centered">
-            <p class="eyebrow">架构</p>
-            <h2>把模型、密钥与终端体验收束为一层。</h2>
+            <h2>把模型、密钥与终端体验<br />收束为一层。</h2>
             <p>
               Mer3y Sense 以模型广场为组织入口，将能力目录、分组策略、倍率体系与客户端配置统一管理，让 LLM 使用从临时拼接变为可持续的基础设施。
             </p>
@@ -279,7 +288,7 @@ GEMINI_MODEL=latest-model-name</code></pre>
             <article class="feature-card">
               <span class="status done">已完成</span>
               <h3>模型目录</h3>
-              <p>GPT、Claude、Gemini、Grok 等能力以统一视图呈现，按场景选择模型与路由。</p>
+              <p>GPT、Claude、Gemini 等能力以统一视图呈现，按场景选择模型与路由。</p>
             </article>
             <article class="feature-card">
               <span class="status done">已完成</span>
@@ -304,6 +313,6 @@ GEMINI_MODEL=latest-model-name</code></pre>
       <a href="#features" data-dot="features"><span>更多</span></a>
     </aside>
 
-    <script src="/aisz-homepage/app.js?v=20260706-premium-title-v15"></script>
+    <script src="/aisz-homepage/app.js?v=20260706-tool-tags-v24"></script>
   </body>
 </html>
