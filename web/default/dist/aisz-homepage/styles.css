@@ -426,6 +426,7 @@ body:not([data-current="home"]) .aether-symbol-layer {
 
 .claude-emblem {
   --provider-logo: url("/aisz-homepage/assets/claude.svg");
+  --logo-prelude-duration: 640ms;
   --provider-color: #d97757;
   --provider-glow: rgba(217, 119, 87, 0.34);
   --logo-fill: #d97757;
@@ -439,6 +440,7 @@ body:not([data-current="home"]) .aether-symbol-layer {
 
 .gemini-emblem {
   --provider-logo: url("/aisz-homepage/assets/gemini.svg");
+  --logo-prelude-duration: 640ms;
   --provider-color: #7f6df2;
   --provider-glow: rgba(111, 125, 255, 0.34);
   --logo-fill: linear-gradient(135deg, #4285f4 0%, #7f6df2 46%, #d9659f 100%);
@@ -486,11 +488,14 @@ body:not([data-current="home"]) .aether-symbol-layer {
 }
 
 .claude-emblem.is-travel-target::before,
-.claude-emblem.is-active::before,
-.gemini-emblem.is-travel-target::before,
-.gemini-emblem.is-active::before {
+.gemini-emblem.is-travel-target::before {
   opacity: 0.2;
   transform: translateZ(0) scale(1);
+}
+
+.claude-emblem.is-active::before,
+.gemini-emblem.is-active::before {
+  animation: provider-logo-prelude var(--logo-prelude-duration) cubic-bezier(0.2, 0.72, 0.18, 1) both;
 }
 
 .model-emblem::after {
@@ -589,10 +594,11 @@ body:not([data-current="home"]) .aether-symbol-layer {
 
 .claude-emblem.is-active .provider-build-seg {
   animation-duration: 2.02s;
+  animation-delay: var(--logo-prelude-duration);
 }
 
 .gemini-emblem.is-active .provider-build-seg {
-  animation-delay: 120ms;
+  animation-delay: calc(var(--logo-prelude-duration) + 120ms);
 }
 
 .claude-emblem.is-active .provider-build-fill,
@@ -601,20 +607,20 @@ body:not([data-current="home"]) .aether-symbol-layer {
 }
 
 .claude-emblem.is-active .provider-build-fill {
-  animation-delay: 2.08s;
+  animation-delay: calc(var(--logo-prelude-duration) + 2.08s);
 }
 
 .gemini-emblem.is-active .provider-build-fill {
-  animation-delay: 1.74s;
+  animation-delay: calc(var(--logo-prelude-duration) + 1.74s);
 }
 
 .claude-emblem.is-active .provider-build-svg,
 .gemini-emblem.is-active .provider-build-svg {
-  animation: provider-breathe 3.8s ease-in-out infinite 2.32s;
+  animation: provider-breathe 3.8s ease-in-out infinite calc(var(--logo-prelude-duration) + 2.32s);
 }
 
 .claude-emblem.is-active .provider-build-svg {
-  animation: provider-breathe 3.8s ease-in-out infinite 2.66s;
+  animation: provider-breathe 3.8s ease-in-out infinite calc(var(--logo-prelude-duration) + 2.66s);
 }
 
 .openai-emblem.is-active .openai-build-seg {
@@ -738,7 +744,7 @@ body:not([data-current="home"]) .aether-symbol-layer {
   animation-name: gemini-sky-appear, gemini-sky-drift;
   animation-duration: 680ms, var(--sky-duration);
   animation-timing-function: cubic-bezier(0.2, 0.72, 0.18, 1), ease-in-out;
-  animation-delay: var(--sky-delay), calc(var(--sky-delay) + 680ms);
+  animation-delay: calc(var(--logo-prelude-duration) + var(--sky-delay)), calc(var(--logo-prelude-duration) + var(--sky-delay) + 680ms);
   animation-iteration-count: 1, infinite;
   animation-fill-mode: both, none;
 }
@@ -1546,6 +1552,24 @@ pre {
   100% {
     fill-opacity: 1;
     opacity: 1;
+  }
+}
+
+@keyframes provider-logo-prelude {
+  0% {
+    opacity: 0;
+    transform: translateZ(0) scale(0.94);
+    filter: blur(3px) drop-shadow(0 0 0 var(--provider-glow));
+  }
+  64% {
+    opacity: 0.22;
+    transform: translateZ(0) scale(1.035);
+    filter: blur(0.4px) drop-shadow(0 14px 28px var(--provider-glow));
+  }
+  100% {
+    opacity: 0.2;
+    transform: translateZ(0) scale(1);
+    filter: blur(0.2px) drop-shadow(0 12px 24px var(--provider-glow));
   }
 }
 

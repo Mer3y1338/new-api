@@ -1,1 +1,0 @@
-"use strict";(self.rspackChunknewapi_web=self.rspackChunknewapi_web||[]).push([[7337],{36944(e,s,n){n.r(s),n.d(s,{component:()=>a});var r=n(79015);let a=function(){return(0,r.jsx)("iframe",{src:"/aisz-homepage.html?v=20260706-claude-gemini-bg-v4",title:"Mer3y Sense Home",className:"fixed inset-0 h-svh w-screen border-0 bg-black"})}}}]);
