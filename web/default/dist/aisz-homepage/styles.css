@@ -425,6 +425,7 @@ body:not([data-current="home"]) .aether-symbol-layer {
 }
 
 .claude-emblem {
+  --provider-logo: url("/aisz-homepage/assets/claude.svg");
   --provider-color: #d97757;
   --provider-glow: rgba(217, 119, 87, 0.34);
   --logo-fill: #d97757;
@@ -437,6 +438,7 @@ body:not([data-current="home"]) .aether-symbol-layer {
 }
 
 .gemini-emblem {
+  --provider-logo: url("/aisz-homepage/assets/gemini.svg");
   --provider-color: #7f6df2;
   --provider-glow: rgba(111, 125, 255, 0.34);
   --logo-fill: linear-gradient(135deg, #4285f4 0%, #7f6df2 46%, #d9659f 100%);
@@ -463,6 +465,32 @@ body:not([data-current="home"]) .aether-symbol-layer {
 
 .model-emblem.is-active {
   animation: emblem-stage-drift 6.8s ease-in-out infinite;
+}
+
+.claude-emblem::before,
+.gemini-emblem::before {
+  position: absolute;
+  inset: 14%;
+  z-index: 1;
+  display: block;
+  content: "";
+  pointer-events: none;
+  opacity: 0;
+  background: center / contain no-repeat var(--provider-logo);
+  filter: blur(0.2px) drop-shadow(0 12px 24px var(--provider-glow));
+  transform: translateZ(0) scale(0.985);
+  transition:
+    opacity 320ms ease,
+    transform 480ms ease,
+    filter 480ms ease;
+}
+
+.claude-emblem.is-travel-target::before,
+.claude-emblem.is-active::before,
+.gemini-emblem.is-travel-target::before,
+.gemini-emblem.is-active::before {
+  opacity: 0.2;
+  transform: translateZ(0) scale(1);
 }
 
 .model-emblem::after {
