@@ -196,4 +196,4 @@ jobs:
       - name: Dispatch GHCR image workflow
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh workflow run build-image.yml --ref main -f tag="${GITHUB_REF_NAME}"
+        run: gh workflow run build-image.yml --repo "${GITHUB_REPOSITORY}" --ref main -f tag="${GITHUB_REF_NAME}"
