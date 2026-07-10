@@ -1,6 +1,7 @@
 name: Release (Linux, macOS, Windows)
 permissions:
   contents: write
+  actions: write
 
 on:
   workflow_dispatch:
@@ -184,3 +185,15 @@ jobs:
             checksums-windows.txt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  publish_image:
+    name: Trigger GHCR image build
+    needs:
+      - linux
+      - macos
+      - windows
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch GHCR image workflow
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run build-image.yml --ref main -f tag="${GITHUB_REF_NAME}"
