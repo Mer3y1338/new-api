@@ -96,17 +96,17 @@ function getLogoActivationDelay(stageId) {
 function logoAssetForSection(sectionId) {
   return {
     claude: {
-      src: "./assets/claude.svg",
+      src: "/aisz-homepage/assets/claude.svg",
       core: "rgba(217, 119, 87, 0.5)",
       glow: "rgba(217, 119, 87, 0.28)",
     },
     codex: {
-      src: "./assets/openai.svg",
+      src: "/aisz-homepage/assets/openai.svg",
       core: "rgba(20, 20, 19, 0.32)",
       glow: "rgba(20, 20, 19, 0.2)",
     },
     gemini: {
-      src: "./assets/gemini.svg",
+      src: "/aisz-homepage/assets/gemini.svg",
       core: "rgba(127, 109, 242, 0.5)",
       glow: "rgba(111, 125, 255, 0.3)",
     },

@@ -20,7 +20,7 @@ For commercial licensing, please contact support@quantumnous.com
 export function Home() {
   return (
     <iframe
-      src='/aisz-homepage.html?v=20260710-claude-polish-v1'
+      src='/aisz-homepage.html?v=20260717-logo-path-fix-v1'
       title='Mer3y Sense Home'
       sandbox='allow-scripts allow-top-navigation-by-user-activation'
       className='fixed inset-0 h-svh w-screen border-0 bg-black'
