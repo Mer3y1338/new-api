@@ -1,0 +1,85 @@
+name: Build Mer3y Sense image
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: mer3y-sense-image-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-push:
+    name: Build and publish linux/amd64 image
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Prepare immutable image tags
+        id: image
+        shell: bash
+        run: |
+          set -euo pipefail
+          owner="$(printf '%s' "$GITHUB_REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')"
+          image="ghcr.io/${owner}/new-api"
+          short_sha="$(git rev-parse --short=12 HEAD)"
+          version="main-${short_sha}"
+
+          # VERSION is embedded into the executable; this only changes the
+          # temporary GitHub Actions checkout, never the repository checkout.
+          printf '%s\n' "$version" > VERSION
+
+          {
+            echo "image=${image}"
+            echo "short_sha=${short_sha}"
+            echo "version=${version}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ steps.image.outputs.image }}:main
+            ${{ steps.image.outputs.image }}:sha-${{ steps.image.outputs.short_sha }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ steps.image.outputs.version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: mode=max
+
+      - name: Publish build summary
+        run: |
+          {
+            echo '## Mer3y Sense container image'
+            echo
+            echo "- Source: \`${{ github.sha }}\`"
+            echo "- Mutable deployment tag: \`${{ steps.image.outputs.image }}:main\`"
+            echo "- Immutable rollback tag: \`${{ steps.image.outputs.image }}:sha-${{ steps.image.outputs.short_sha }}\`"
+            echo "- Digest: \`${{ steps.build.outputs.digest }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
